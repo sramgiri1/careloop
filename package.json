@@ -1,0 +1,48 @@
+{
+  "name": "careloop-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "prisma generate",
+    "predev": "prisma migrate deploy && prisma generate",
+    "dev": "node scripts/dev.js",
+    "prestart": "prisma migrate deploy && prisma generate",
+    "start": "node src/index.js",
+    "careloop:demo": "node scripts/careloop-demo-room-setup.js",
+    "migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "generate": "prisma generate",
+    "studio": "prisma studio",
+    "qa:reset": "node scripts/reset-db.js",
+    "qa:seed:sprint1": "node scripts/seed-sprint1.js",
+    "qa:seed:showcase": "node scripts/seed-demo-showcase.js",
+    "check:demo-showcase": "node scripts/check-demo-showcase-readiness.js",
+    "check:careloop-demo-readiness": "node scripts/check-demo-showcase-readiness.js",
+    "careloop:demo:check": "node scripts/check-demo-showcase-readiness.js",
+    "check:ios-release-hygiene": "node scripts/check-ios-release-hygiene.js",
+    "check:ios-release-artifact": "CARELOOP_REQUIRE_RELEASE_APP=1 node scripts/check-ios-release-hygiene.js",
+    "careloop:record-personas": "node scripts/record-persona-demo-videos.js",
+    "standalone:export": "node scripts/export-standalone.js",
+    "check:standalone-export": "node scripts/export-standalone.js --dry-run",
+    "test:ios": "bash scripts/careloop-ios-test-runner.sh ios",
+    "test:ios:ui": "bash scripts/careloop-ios-test-runner.sh ios:ui",
+    "test:ios:api": "bash scripts/careloop-ios-test-runner.sh ios:api",
+    "test": "node --test test/*.test.js",
+    "test:smoke": "node --test test/sprint2.test.js",
+    "test:watch": "node --test --watch test/*.test.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/formbody": "^7.4.0",
+    "@prisma/client": "^5.14.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.27.0",
+    "jose": "^6.2.2",
+    "node-cron": "^3.0.3",
+    "resend": "^3.2.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.14.0"
+  }
+}

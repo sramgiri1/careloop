@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "064A3191-85BB-4277-90AF-7B9D58C34F55",
+      "name" : "Regression",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:CareLoop.xcodeproj",
+      "identifier" : "2E33951834C1EC590082CB4F",
+      "name" : "CareLoop"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:CareLoop.xcodeproj",
+        "identifier" : "BCC6E0E55C2A00353EE40851",
+        "name" : "CareLoopTests"
+      }
+    },
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:CareLoop.xcodeproj",
+        "identifier" : "A9E1C0051B8D4C8E9F010005",
+        "name" : "CareLoopUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

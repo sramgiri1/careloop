@@ -1,0 +1,68 @@
+{
+  "identifier": "careloop-local-storekit",
+  "nonRenewingSubscriptions": [],
+  "products": [],
+  "settings": {
+    "_applicationInternalID": "0",
+    "_developerTeamID": "LOCAL",
+    "_lastSynchronizedDate": 0
+  },
+  "subscriptionGroups": [
+    {
+      "id": "careloop-premium-receiver-group",
+      "localizations": [
+        {
+          "displayName": "CareLoop Premium",
+          "locale": "en_US"
+        }
+      ],
+      "name": "CareLoop Premium Receiver",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "4.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "careloop-premium-monthly",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Unlock recurring routines, insights, unlimited caregivers, and advanced coordination for one care receiver.",
+              "displayName": "CareLoop Premium Monthly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.careloop.ios.premium.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "CareLoop Premium Monthly",
+          "subscriptionGroupID": "careloop-premium-receiver-group"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "49.99",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "careloop-premium-yearly",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Unlock recurring routines, insights, unlimited caregivers, and advanced coordination for one care receiver.",
+              "displayName": "CareLoop Premium Yearly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.careloop.ios.premium.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "CareLoop Premium Yearly",
+          "subscriptionGroupID": "careloop-premium-receiver-group"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}

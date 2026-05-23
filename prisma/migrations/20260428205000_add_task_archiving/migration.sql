@@ -1,0 +1,6 @@
+ALTER TABLE "CareCircle"
+ADD COLUMN "archiveAfterDays" INTEGER NOT NULL DEFAULT 7;
+
+ALTER TABLE "Task"
+ADD COLUMN "completedAt" TIMESTAMP(3),
+ADD COLUMN "archivedAt" TIMESTAMP(3);

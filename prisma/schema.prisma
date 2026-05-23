@@ -1,0 +1,421 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  name             String
+  phone            String?
+  passwordHash     String?
+  authVersion      Int      @default(0)
+  pushToken        String?
+  timezone         String?
+  notifAssignments Boolean  @default(true)
+  notifEscalations Boolean  @default(true)
+  notifDigest      Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  identities                    AuthIdentity[]
+  memberships                   CircleMember[]
+  sentInvitations               Invitation[]               @relation("InvitationSender")
+  acceptedInvitations           Invitation[]               @relation("InvitationResponder")
+  passwordResetCodes            PasswordResetCode[]
+  tasksCreated                  Task[]                     @relation("TaskCreator")
+  tasksAssigned                 Task[]                     @relation("TaskAssignee")
+  tasksCompleted                Task[]                     @relation("TaskCompletedBy")
+  taskComments                  TaskComment[]              @relation("TaskCommentAuthor")
+  events                        Event[]
+  digestLogs                    DigestLog[]
+  receiverProfiles              CareRecipient[]            @relation("CareReceiverUser")
+  attestedReceiverConsents      CareRecipient[]            @relation("CareRecipientConsentAttester")
+  proxyAuthorizedRecipients     CareRecipient[]            @relation("CareRecipientProxyAuthorizer")
+  grantedRecipientAccesses      CareRecipientAccess[]      @relation("CareRecipientAccessGrantor")
+  purchasedReceiverEntitlements CareRecipientEntitlement[] @relation("CareRecipientEntitlementPurchaser")
+  premiumUpgradeRequests        PremiumUpgradeRequest[]    @relation("PremiumUpgradeRequestRequester")
+}
+
+model AuthIdentity {
+  id             String       @id @default(cuid())
+  provider       AuthProvider
+  providerUserId String
+  providerEmail  String?
+  providerName   String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@unique([provider, providerUserId])
+}
+
+model PasswordResetCode {
+  id         String    @id @default(cuid())
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId, consumedAt, createdAt])
+}
+
+model CareCircle {
+  id               String   @id @default(cuid())
+  name             String
+  recipientName    String
+  archiveAfterDays Int      @default(7)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  members                CircleMember[]
+  invitations            Invitation[]
+  recipients             CareRecipient[]
+  tasks                  Task[]
+  events                 Event[]
+  premiumUpgradeRequests PremiumUpgradeRequest[]
+}
+
+model Invitation {
+  id         String           @id @default(cuid())
+  email      String
+  name       String
+  role       Role             @default(MEMBER)
+  status     InvitationStatus @default(PENDING)
+  acceptedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  circle      CareCircle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  circleId    String
+  recipient   CareRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+  recipientId String?
+
+  invitedBy   User?   @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: SetNull)
+  invitedById String?
+
+  acceptedBy   User?   @relation("InvitationResponder", fields: [acceptedById], references: [id], onDelete: SetNull)
+  acceptedById String?
+
+  @@index([circleId, status, createdAt])
+  @@index([email, status, createdAt])
+  @@index([recipientId])
+}
+
+model CareRecipient {
+  id                       String                        @id @default(cuid())
+  name                     String
+  relationship             String?
+  notes                    String?
+  isPrimary                Boolean                       @default(false)
+  sortOrder                Int                           @default(0)
+  activationStatus         CareRecipientActivationStatus @default(DRAFT)
+  activatedAt              DateTime?
+  consentAttestedAt        DateTime?
+  consentDocumentReference String?
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+
+  circle              CareCircle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  circleId            String
+  receiverUser        User?      @relation("CareReceiverUser", fields: [receiverUserId], references: [id], onDelete: SetNull)
+  receiverUserId      String?
+  consentAttestedBy   User?      @relation("CareRecipientConsentAttester", fields: [consentAttestedById], references: [id], onDelete: SetNull)
+  consentAttestedById String?
+  proxyAuthorizedBy   User?      @relation("CareRecipientProxyAuthorizer", fields: [proxyAuthorizedById], references: [id], onDelete: SetNull)
+  proxyAuthorizedById String?
+
+  tasks                  Task[]
+  accessGrants           CareRecipientAccess[]
+  entitlement            CareRecipientEntitlement?
+  invitations            Invitation[]
+  premiumUpgradeRequests PremiumUpgradeRequest[]
+
+  @@index([circleId, activationStatus])
+  @@index([circleId, isPrimary, sortOrder, createdAt])
+  @@index([receiverUserId])
+}
+
+model CircleMember {
+  id       String   @id @default(cuid())
+  role     Role     @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  circle   CareCircle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  circleId String
+
+  recipientAccesses CareRecipientAccess[]
+
+  @@unique([userId, circleId])
+  @@index([circleId, role])
+}
+
+model CareRecipientAccess {
+  id        String    @id @default(cuid())
+  grantedAt DateTime  @default(now())
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  recipient   CareRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId String
+  member      CircleMember  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId    String
+  grantedBy   User?         @relation("CareRecipientAccessGrantor", fields: [grantedById], references: [id], onDelete: SetNull)
+  grantedById String?
+
+  @@unique([recipientId, memberId])
+  @@index([memberId, revokedAt])
+  @@index([recipientId, revokedAt])
+}
+
+model CareRecipientEntitlement {
+  id                         String                          @id @default(cuid())
+  status                     CareRecipientEntitlementStatus  @default(FREE)
+  source                     CareRecipientEntitlementSource?
+  startsAt                   DateTime?
+  expiresAt                  DateTime?
+  appleOriginalTransactionId String?
+  appleProductId             String?
+  createdAt                  DateTime                        @default(now())
+  updatedAt                  DateTime                        @updatedAt
+
+  recipient     CareRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId   String        @unique
+  purchasedBy   User?         @relation("CareRecipientEntitlementPurchaser", fields: [purchasedById], references: [id], onDelete: SetNull)
+  purchasedById String?
+
+  @@index([status, expiresAt])
+}
+
+model PremiumUpgradeRequest {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  circle          CareCircle    @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  circleId        String
+  recipient       CareRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId     String
+  requester       User          @relation("PremiumUpgradeRequestRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  requesterUserId String
+
+  @@unique([recipientId, requesterUserId])
+  @@index([circleId, recipientId, createdAt])
+}
+
+model Task {
+  id                  String              @id @default(cuid())
+  title               String
+  notes               String?
+  dueAt               DateTime?
+  status              TaskStatus          @default(PENDING)
+  priority            Priority            @default(NORMAL)
+  recurrenceFrequency RecurrenceFrequency @default(NONE)
+  recurrenceInterval  Int?
+  recurrenceWeekdays  String[]            @default([])
+  recurrenceEndsAt    DateTime?
+  seriesId            String?
+  completedAt         DateTime?
+  archivedAt          DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  circle        CareCircle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  circleId      String
+  recipient     CareRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+  recipientId   String?
+  creator       User           @relation("TaskCreator", fields: [creatorId], references: [id])
+  creatorId     String
+  assignee      User?          @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  assigneeId    String?
+  completedBy   User?          @relation("TaskCompletedBy", fields: [completedById], references: [id])
+  completedById String?
+
+  reminders Reminder[]
+  comments  TaskComment[]
+
+  @@index([circleId, archivedAt, completedAt, dueAt, createdAt])
+  @@index([circleId, recipientId, archivedAt, status, dueAt])
+  @@index([circleId, status, completedAt])
+  @@index([assigneeId, status, dueAt])
+  @@index([creatorId, createdAt])
+  @@index([seriesId, dueAt])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId   String
+  author   User   @relation("TaskCommentAuthor", fields: [authorId], references: [id])
+  authorId String
+
+  @@index([taskId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model Reminder {
+  id              String         @id @default(cuid())
+  scheduledAt     DateTime
+  sentAt          DateTime?
+  snoozedUntil    DateTime?
+  snoozeCount     Int            @default(0)
+  escalationDueAt DateTime?
+  channel         Channel        @default(PUSH)
+  status          ReminderStatus @default(PENDING)
+  escalatedAt     DateTime?
+
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId String
+
+  @@index([taskId])
+  @@index([status, scheduledAt])
+  @@index([status, escalationDueAt])
+  @@index([status, escalatedAt])
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  type      EventType
+  payload   Json      @default("{}")
+  createdAt DateTime  @default(now())
+
+  circle   CareCircle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  circleId String
+  actor    User?      @relation(fields: [actorId], references: [id])
+  actorId  String?
+
+  @@index([circleId, createdAt])
+  @@index([actorId, type, createdAt])
+}
+
+model DigestLog {
+  id        String   @id @default(cuid())
+  date      String
+  messageId String?
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@unique([userId, date])
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  RECIPIENT
+}
+
+enum CareRecipientActivationStatus {
+  DRAFT
+  INVITED
+  ACTIVE
+  PROXY_ACTIVE
+}
+
+enum CareRecipientEntitlementStatus {
+  FREE
+  ACTIVE
+  EXPIRED
+  REVOKED
+  BILLING_RETRY
+  REFUNDED
+}
+
+enum CareRecipientEntitlementSource {
+  APP_STORE
+  MANUAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  SKIPPED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum RecurrenceFrequency {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+enum Channel {
+  PUSH
+  EMAIL
+  SMS
+}
+
+enum ReminderStatus {
+  PENDING
+  SNOOZED
+  SENT
+  FAILED
+  ESCALATED
+  CANCELLED
+}
+
+enum EventType {
+  CIRCLE_CREATED
+  INVITE_CREATED
+  INVITE_ACCEPTED
+  INVITE_DECLINED
+  INVITE_REVOKED
+  RECIPIENT_ADDED
+  RECIPIENT_UPDATED
+  RECIPIENT_REMOVED
+  TASK_CREATED
+  TASK_SERIES_CREATED
+  TASK_UPDATED
+  TASK_COMPLETED
+  TASK_DELETED
+  MEMBER_JOINED
+  MEMBER_REMOVED
+  MEMBER_ROLE_UPDATED
+  REMINDER_SENT
+  REMINDER_SNOOZED
+  REMINDER_ESCALATED
+  DIGEST_SENT
+  DIGEST_OPENED
+  APP_SESSION
+}
+
+enum AuthProvider {
+  GOOGLE
+  FACEBOOK
+  APPLE
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  REVOKED
+  EXPIRED
+}
