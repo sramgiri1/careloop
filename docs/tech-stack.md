@@ -7,7 +7,7 @@
 
 ## Summary
 
-Use a custom CareLoop backend with Supabase Postgres as the database, Prisma as the data layer, and Supabase Auth for user authentication and user management. Keep Fastify as the API server. Use Resend for email, APNs for push, and keep background jobs in-process with `node-cron` through the first public launch.
+Use a custom CareLoop backend with Supabase Postgres as the database and Prisma as the data layer. Keep Fastify as the API server and use CareLoop-owned password/OAuth bearer-token auth for the current standalone build. Use Resend for email, APNs for push, and keep background jobs in-process with `node-cron` through the first public launch.
 
 This preserves what already exists, minimizes migration work, and gives a realistic path from local testing to public release without introducing extra vendors too early.
 
@@ -22,7 +22,7 @@ This preserves what already exists, minimizes migration work, and gives a realis
 | Database       | Supabase Postgres           |
 | ORM / schema   | Prisma                      |
 | API server     | Fastify                     |
-| Runtime/hosting| Node.js on Railway or Render|
+| Runtime/hosting| Node.js on Railway |
 
 Matches the current repo. Keeps SQL ownership. Avoids rewriting business logic around Supabase RPC or Firebase-style patterns.
 
@@ -30,16 +30,16 @@ Matches the current repo. Keeps SQL ownership. Avoids rewriting business logic a
 
 | Layer          | Decision                                      |
 |----------------|-----------------------------------------------|
-| Auth provider  | Supabase Auth                                 |
-| Sign-in method | Email magic link or OTP code                  |
-| Session model  | iOS gets Supabase session token; backend verifies JWT per request |
-| User management| CareLoop `User` table with `authUserId` field linking to Supabase identity |
+| Auth provider  | CareLoop backend auth with optional Google/Facebook/Apple OAuth |
+| Sign-in method | Email/password now; OAuth enabled when provider credentials are configured |
+| Session model  | Backend issues CareLoop bearer tokens signed with `AUTH_TOKEN_SECRET` |
+| User management| CareLoop `User` table plus `AuthIdentity` records for social providers |
 
-Cheaper and simpler than Clerk/Auth0 for an iOS-first app. Fits naturally with Supabase Postgres.
+This matches the current code and avoids introducing a second auth provider while the app is being production-hardened. Supabase remains the database provider, not the auth authority, unless a future migration is explicitly planned and tested.
 
 **Sprint rollout:**
-- Sprint 1-2: `x-api-key` for local and closed testing
-- Sprint 3: Supabase Auth end-to-end for public launch; remove shared API key from the app path and require authenticated bearer tokens
+- Current standalone build: authenticated bearer tokens for app traffic
+- Provider credentials: Google/Facebook/Apple social login remains disabled until production callback URLs and app credentials are configured
 
 ### Authorization
 
@@ -126,7 +126,7 @@ No storage product in v1. The current product does not need uploads. Add storage
 | Resource  | Decision                              |
 |-----------|---------------------------------------|
 | Database  | Supabase project (careloop-dev + careloop-prod) |
-| API       | Railway preferred, Render acceptable  |
+| API       | Railway with `railway.json`, `/health`, and Railway-provided `PORT` |
 | iOS       | Xcode / TestFlight                    |
 | Secrets   | Platform env vars + Xcode config separation for dev/prod |
 

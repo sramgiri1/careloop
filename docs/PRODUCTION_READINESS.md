@@ -6,8 +6,11 @@ This document tracks the concrete path from local app readiness to production la
 
 - Backend, iOS app, tests, demo data, and release hygiene checks can run from CareLoop-local scripts.
 - Standalone export tooling exists for creating a clean app-only repo/folder.
-- Local backend regression, demo readiness, and release hygiene checks pass.
-- Production API hosting, Apple/App Store setup, APNs, OAuth credentials, hosted database, and physical-device validation are not complete.
+- Standalone repository exists and has been pushed to GitHub.
+- Supabase production migrations have been applied successfully with `sslmode=require`.
+- Railway config-as-code is present for Railpack, `npm start`, `/health`, restart policy, and the Railway-provided `PORT`.
+- Production env validation is available via `npm run check:production-env -- --env-file .env.prod` and fails without printing secret values.
+- Apple/App Store setup, APNs, OAuth credentials, live email sender validation, and physical-device validation are not complete.
 
 ## Internal Work We Can Do Now
 
@@ -27,6 +30,10 @@ This document tracks the concrete path from local app readiness to production la
    - Define export/delete/retention behavior for accounts, events, invites, comments, reminders, push tokens, and reset codes.
 6. **J5 observability.**
    - Add request timing, error-rate, job-lag, and failed-delivery telemetry without logging care details.
+7. **K3A Railway/API deployment hardening.** Complete.
+   - `railway.json` pins the deploy contract for the standalone repo.
+   - `src/lib/env.js` validates production-only required values and partial provider configs.
+   - `scripts/check-production-env.js` checks local or Railway-style env without exposing secret values.
 
 ## External Setup Needed From Owner
 
@@ -34,7 +41,7 @@ This document tracks the concrete path from local app readiness to production la
 | --- | --- |
 | Standalone repository | GitHub repo URL/name, preferred visibility, and whether to preserve commit history or export as a clean first commit. |
 | Backend hosting | Preferred provider: Supabase + Render/Fly/Railway/AWS/GCP, staging/prod domains, deployment ownership, and billing access. |
-| Database | Hosted Postgres/Supabase project, staging/prod `DATABASE_URL`, backup policy, and encryption-at-rest confirmation. |
+| Database | Hosted Postgres/Supabase project, backup policy, and encryption-at-rest confirmation. Production migrations are already applied to the provided Supabase URL. |
 | Email | Resend account/API key, verified sending domain, sender address, and support/contact address. |
 | Push notifications | Apple Developer team, APNs key/certificate, bundle ID, and production push entitlement. |
 | App Store | App Store Connect app record, subscription group, monthly/yearly product setup, sandbox testers, server API issuer/key/private key. |
@@ -48,6 +55,7 @@ This document tracks the concrete path from local app readiness to production la
 - Standalone repo builds/tests without Nexus workspace files.
 - Backend staging and production deploy through repeatable CI/CD.
 - Prisma migrations deploy safely to staging/prod.
+- `npm run check:production-env -- --env-file .env.prod` passes with no production-blocking errors.
 - Production API config replaces localhost in Release builds.
 - StoreKit purchase, restore, refund/revocation state, and App Store transaction verification pass with sandbox testers.
 - APNs delivery, notification tap deep links, and reminder escalation pass on physical devices.

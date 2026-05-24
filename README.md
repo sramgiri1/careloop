@@ -30,6 +30,7 @@ Use these CareLoop-local scripts from the CareLoop API folder:
 npm run test:smoke
 npm test
 npm run check:demo-showcase
+npm run check:production-env -- --env-file .env.prod
 npm run test:ios:api
 npm run test:ios
 ```
@@ -133,6 +134,23 @@ npm run standalone:export -- --to /absolute/path/to/careloop --clean
 ```
 
 See `docs/STANDALONE_BUILD_TEST.md` and `docs/PRODUCTION_READINESS.md` before moving the export into a new repository.
+
+## Railway Deployment
+
+Railway deployment config lives in `railway.json` and uses Railpack, `npm start`, `/health`, and the Railway-provided `PORT`. Do not commit `.env` or `.env.prod`; configure secrets in Railway service variables.
+
+Minimum production variables:
+
+```text
+NODE_ENV=production
+DATABASE_URL=postgresql://...supabase.co:5432/postgres?sslmode=require
+AUTH_TOKEN_SECRET=32-plus-character-secret
+PUBLIC_API_BASE_URL=https://your-railway-domain.up.railway.app
+DAILY_DIGEST_HOUR=8
+REMINDER_ESCALATION_MINUTES=30
+```
+
+Email, push, OAuth, and App Store verification can be added when credentials are available. Until then, `npm run check:production-env` reports them as warnings instead of printing secret values.
 
 The product IDs must stay aligned with `SubscriptionManager` and App Store Connect:
 

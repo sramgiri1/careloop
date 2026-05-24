@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20 <25",
+    "npm": ">=10"
+  },
   "scripts": {
     "postinstall": "prisma generate",
     "predev": "prisma migrate deploy && prisma generate",
@@ -20,6 +24,7 @@
     "check:demo-showcase": "node scripts/check-demo-showcase-readiness.js",
     "check:careloop-demo-readiness": "node scripts/check-demo-showcase-readiness.js",
     "careloop:demo:check": "node scripts/check-demo-showcase-readiness.js",
+    "check:production-env": "node scripts/check-production-env.js",
     "check:ios-release-hygiene": "node scripts/check-ios-release-hygiene.js",
     "check:ios-release-artifact": "CARELOOP_REQUIRE_RELEASE_APP=1 node scripts/check-ios-release-hygiene.js",
     "careloop:record-personas": "node scripts/record-persona-demo-videos.js",

@@ -12,6 +12,7 @@ const backendEntries = [
   "package-lock.json",
   "package.json",
   "prisma",
+  "railway.json",
   "scripts",
   "src",
   "test",
@@ -140,6 +141,7 @@ function collectFiles(root) {
 function validateExport(destination) {
   const required = [
     "package.json",
+    "railway.json",
     "src/index.js",
     "prisma/schema.prisma",
     "scripts/careloop-demo-room-setup.js",
@@ -190,6 +192,7 @@ function buildManifest({ destination, dryRun, iosRoot, counters }) {
       "npm install",
       "npm test",
       "npm run check:demo-showcase",
+      "npm run check:production-env -- --env-file .env.prod",
       "npm run check:ios-release-hygiene",
       "npm run test:ios:api",
     ],

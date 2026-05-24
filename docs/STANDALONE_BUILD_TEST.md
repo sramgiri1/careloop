@@ -45,6 +45,7 @@ npm install
 npm test
 npm run check:demo-showcase
 npm run check:standalone-export
+npm run check:production-env -- --env-file .env.prod
 npm run check:ios-release-hygiene
 npm run test:ios:api
 ```
@@ -73,6 +74,7 @@ CARELOOP_DEMO_FORCE_BUILD=1 CARELOOP_DEMO_FORCE_INSTALL=1 npm run careloop:demo
 
 - Do not copy `node_modules`, `.tmp`, simulator output, recordings, or local generated artifacts.
 - Do not copy real `.env` values into a new repo. Start from `.env.example` and recreate secrets through the deployment environment.
+- Run `npm run check:production-env -- --env-file .env.prod` before attaching a hosted API to mobile builds.
 - Keep backend tests in `test/` and iOS tests in `ios/CareLoopTests` and `ios/CareLoopUITests`.
 - Keep demo-only launch hooks DEBUG-gated and continue running `npm run check:ios-release-hygiene` before release work.
 - Keep medication-specific product work on hold until product/legal/liability approval.

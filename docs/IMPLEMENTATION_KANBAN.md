@@ -1,6 +1,6 @@
 # CareLoop Implementation Kanban
 
-**Last updated:** 2026-05-22
+**Last updated:** 2026-05-24
 
 This board tracks CareLoop app work only. It mirrors the PRD implementation phases and must be updated whenever a subphase moves state.
 
@@ -16,7 +16,7 @@ A card can move to `Done` only when all of these are true:
 
 ## In Progress
 
-No CareLoop implementation card is actively in progress. Phase K1 and K2A standalone export tooling are complete. K2B physical repo extraction can start once the target repository/path is chosen. J2-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
+No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, and K3A Railway/API deployment hardening are complete. J2-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
 
 ## Ready
 
@@ -35,7 +35,6 @@ No CareLoop implementation card is actively in progress. Phase K1 and K2A standa
 | J3 | Postgres load testing and query-plan baselines. | Large seed profiles, Prisma query paths, index coverage. | Load-shape scripts and query-plan assertions for high-cardinality reads. | No direct demo change. | Planned |
 | J4 | PII retention, export/delete, and encryption review. | Event/invite/comment/reminder retention, export/delete routes, security checks. | PII redaction, export/delete, and scoped-access regressions. | Adds trust/privacy talking points after implemented. | Planned |
 | J5 | Observability and performance budgets. | API timing/error/job-lag telemetry without private care details. | Telemetry contract tests and local performance smoke checks. | No direct demo change. | Planned |
-| K2B | Physical standalone repository extraction. | CareLoop backend package, iOS app, app-only docs/tests/scripts. | `npm install`, backend tests, demo readiness, and Xcode build/test from extracted repo. | Demo command should run from standalone repo. | Needs Owner Target |
 | K3 | Standalone CI and release gates. | CI config, secret placeholders, Prisma validation, Xcode build jobs. | First CI run must pass without Nexus workspace files. | No direct demo change. | Planned |
 | K4 | Nexus archive/read-only integration. | Nexus references only, no app source mutation. | Nexus checks must not require CareLoop app source writes. | No direct demo change. | Planned |
 
@@ -88,6 +87,8 @@ No CareLoop implementation card is actively in progress. Phase K1 and K2A standa
 | J1 | Hot-path indexes and cursor pagination. | Added PostgreSQL indexes for auth reset lookup, invitations, receiver access/order, task lists, comments, reminders, and activity events; added opt-in cursor pagination for tasks, task comments, invitations, and events while preserving legacy array responses; focused backend scale/pagination regression and Prisma schema validation passed. |
 | K1 | CareLoop-local command boundary. | Added CareLoop-local room demo launcher, centralized iOS path resolution for local/sibling/extracted layouts, updated demo/readiness/recording/release/test scripts, and documented standalone build/test layout. |
 | K2A | Standalone export tooling. | Added guarded `npm run standalone:export` and `npm run check:standalone-export` commands that create/validate an app-only layout while excluding secrets, runtime artifacts, Nexus OS files, dashboard, reports, roadmap, `node_modules`, and simulator output. |
+| K2B | Physical standalone repository extraction. | Exported CareLoop to `/Users/sucheth/Downloads/careloop`, validated backend/demo/standalone checks, and pushed the standalone app repository to GitHub. |
+| K3A | Railway/API deployment hardening. | Added `railway.json`, Node engine pinning, production env validation, safe env checker tests, `.env.example` production placeholders, and docs for Railway/Supabase readiness without committing secrets. |
 
 ## Blocked / External Setup
 
