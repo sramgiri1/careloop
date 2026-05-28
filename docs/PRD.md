@@ -284,11 +284,11 @@ Every API action, screen, and empty state must enforce these product rules.
 
 ### 5.3 Reminder Escalation
 
-**Scheduler ownership:** `node-cron` job inside the API process. One job per server instance. Not distributed — acceptable for Sprint 1 scale.
+**Scheduler ownership:** `node-cron` job inside the API process. One job per server instance. Reminder and escalation jobs use atomic claim statuses so overlapping API instances do not double-send the same due reminder or escalation.
 
 **Timezone source:** Stored on the `User` record as an IANA timezone string (e.g. `America/New_York`). **Capture mechanism:** iOS auto-detects `TimeZone.current.identifier` at onboarding and immediately calls `PATCH /users/:id/timezone`. No user-facing picker in Sprint 1. **Fallback:** if auto-detect returns empty, default to `America/New_York`. Used for digest scheduling only. Reminder offsets (15 min before due) are always UTC-relative.
 
-**Reminder creation:** When a task is saved with a `dueAt`, a `Reminder` record is created with `scheduledAt = dueAt - 15 minutes`. Cron polls every minute for reminders where `scheduledAt <= now AND status IN (PENDING, SNOOZED)`.
+**Reminder creation:** When a task is saved with a `dueAt`, a `Reminder` record is created with `scheduledAt = dueAt - 15 minutes`. Cron polls every minute for reminders where `scheduledAt <= now AND status IN (PENDING, SNOOZED)`, then atomically claims a row by moving it to `PROCESSING` before delivery.
 
 **Escalation logic:**
 
@@ -303,7 +303,7 @@ Every API action, screen, and empty state must enforce these product rules.
 
 **Deep-link payload:** Reminder notifications include `taskId`, `circleId`, `recipientId`, and notification `type`. The iOS app stores both pending task and pending circle context, opens the task only when the active circle owns it, and clears the pending state after navigation.
 
-**Idempotency:** Cron checks `Reminder.status` before sending. A reminder with `status` outside `PENDING` / `SNOOZED` is skipped. Prevents double-sends on process restart while allowing snoozed reminders to be delivered when their new `scheduledAt` arrives.
+**Idempotency:** Cron checks and atomically updates `Reminder.status` before sending. A reminder with `status` outside `PENDING` / `SNOOZED` is skipped, and escalation claims move from `SENT` to `ESCALATING` before fanout. This prevents double-sends when scheduler workers overlap while allowing snoozed reminders to be delivered when their new `scheduledAt` arrives.
 
 ### 5.4 Daily Digest
 
@@ -1286,7 +1286,7 @@ After the receiver-scoped premium phase, implementation should continue in small
 
 **Goal:** keep the existing CareLoop architecture clean while preparing the database, API read paths, privacy controls, and operations model for larger families, multiple caregivers, and production traffic.
 
-**Implementation status:** J1 is complete on the active CareLoop branch. High-growth read paths now have hot-path PostgreSQL indexes, opt-in cursor pagination for tasks, task comments, invitations, and events, and backend regression coverage that preserves the existing legacy array response contract when clients do not request pagination.
+**Implementation status:** J1 and J2A are complete on the standalone CareLoop repo. High-growth read paths now have hot-path PostgreSQL indexes, opt-in cursor pagination for tasks, task comments, invitations, and events, and backend regression coverage that preserves the existing legacy array response contract when clients do not request pagination. Reminder and escalation scheduler workers now use atomic claim statuses to prevent duplicate sends when API instances overlap.
 
 **Subphases**
 
@@ -1300,15 +1300,21 @@ After the receiver-scoped premium phase, implementation should continue in small
    - Replace single-process assumptions in reminder, snooze, escalation, digest, and archive jobs with idempotent claiming semantics.
    - Ensure duplicate workers cannot double-send reminders or escalation fanout.
    - Tests: backend concurrent-claim simulation and idempotent retry coverage.
-3. **J3: Postgres load testing and query-plan baselines.**
+   - Status: partially complete. J2A reminder/escalation atomic claim is complete; digest/archive/recurrence multi-worker review remains planned.
+3. **J2A: Reminder and escalation atomic claim.**
+   - Add `PROCESSING` and `ESCALATING` reminder states plus `processingStartedAt` to make overlap visible and auditable.
+   - Atomically claim due reminders and escalation fanout before sending.
+   - Tests: backend concurrent-worker simulations verify only one reminder send or escalation event is logged.
+   - Status: complete.
+4. **J3: Postgres load testing and query-plan baselines.**
    - Add deterministic seed profiles for large circles, many receivers, many caregivers, and long task/event histories.
    - Capture query-plan expectations for task lists, activity, invitations, reminders, and insights.
    - Tests: local load-shape scripts that fail on unpaginated high-cardinality reads or missing indexes.
-4. **J4: PII retention, export/delete, and encryption review.**
+5. **J4: PII retention, export/delete, and encryption review.**
    - Define retention policy for events, invites, comments, reminders, push tokens, reset codes, and demo/test data.
    - Ensure audit payloads stay non-PII where possible and raw provider payloads are not stored or surfaced.
    - Tests: PII redaction checks, export/delete route coverage, and security regression for scoped data access.
-5. **J5: Observability and performance budgets.**
+6. **J5: Observability and performance budgets.**
    - Add request timing, error-rate, job-lag, and failed-delivery visibility without logging private care details.
    - Establish backend latency budgets for dashboard, task board, activity, and insights endpoints.
    - Tests: telemetry contract tests and local performance smoke checks.

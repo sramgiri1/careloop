@@ -796,6 +796,7 @@ function buildDb(seed = {}) {
 
   function reminderRepo(s) {
     function matchesReminderWhere(reminder, where = {}) {
+      if (where.id && reminder.id !== where.id) return false;
       if (where.taskId && reminder.taskId !== where.taskId) return false;
       if (where.status && typeof where.status === "string" && reminder.status !== where.status) return false;
       if (where.status?.in && !where.status.in.includes(reminder.status)) return false;
@@ -843,6 +844,7 @@ function buildDb(seed = {}) {
           snoozeCount: 0,
           escalationDueAt: null,
           escalatedAt: null,
+          processingStartedAt: null,
           ...d,
         };
         s.reminders.push(r);
@@ -859,6 +861,15 @@ function buildDb(seed = {}) {
         if (!reminder) throw Object.assign(new Error("NotFound"), { code: "P2025" });
         Object.assign(reminder, d);
         return includeReminder(reminder, include);
+      },
+      updateMany: async ({ where, data: d }) => {
+        let count = 0;
+        for (const reminder of s.reminders) {
+          if (!matchesReminderWhere(reminder, where)) continue;
+          Object.assign(reminder, d);
+          count += 1;
+        }
+        return { count };
       },
       deleteMany: async ({ where }) => {
         const before = s.reminders.length;
@@ -4516,6 +4527,60 @@ describe("receiver-scoped access control", () => {
     assert.equal(event.payload.recipientId, null);
     assert.equal(event.payload.recipientCount, 2);
     assert.equal(JSON.stringify(event.payload).includes("@"), false, "timeline payload must not leak emails");
+  });
+
+  test("pending reminders are claimed once when scheduler workers overlap", async () => {
+    const db = buildDb(scopedAccessSeed());
+    db._s.reminders.push({
+      id: "rem-overlap-pending",
+      taskId: "t1",
+      status: "PENDING",
+      scheduledAt: new Date(Date.now() - 1000),
+      sentAt: null,
+      snoozedUntil: null,
+      snoozeCount: 0,
+      escalationDueAt: null,
+      escalatedAt: null,
+      processingStartedAt: null,
+    });
+
+    await Promise.all([
+      processPendingReminders(db),
+      processPendingReminders(db),
+    ]);
+
+    const reminder = db._s.reminders.find((item) => item.id === "rem-overlap-pending");
+    assert.equal(reminder.status, "SENT");
+    assert.equal(reminder.processingStartedAt, null);
+    const events = db._s.events.filter((item) => item.type === "REMINDER_SENT" && item.payload.taskId === "t1");
+    assert.equal(events.length, 1, "only one overlapping worker may send/log the reminder");
+  });
+
+  test("sent reminders are escalated once when scheduler workers overlap", async () => {
+    const db = buildDb(scopedAccessSeed());
+    db._s.reminders.push({
+      id: "rem-overlap-escalation",
+      taskId: "t1",
+      status: "SENT",
+      scheduledAt: new Date(Date.now() - 30 * 60 * 1000),
+      sentAt: new Date(Date.now() - 20 * 60 * 1000),
+      snoozedUntil: null,
+      snoozeCount: 0,
+      escalationDueAt: new Date(Date.now() - 1000),
+      escalatedAt: null,
+      processingStartedAt: null,
+    });
+
+    await Promise.all([
+      processEscalations(db),
+      processEscalations(db),
+    ]);
+
+    const reminder = db._s.reminders.find((item) => item.id === "rem-overlap-escalation");
+    assert.equal(reminder.status, "ESCALATED");
+    assert.equal(reminder.processingStartedAt, null);
+    const events = db._s.events.filter((item) => item.type === "REMINDER_ESCALATED" && item.payload.taskId === "t1");
+    assert.equal(events.length, 1, "only one overlapping worker may escalate/log the reminder");
   });
 });
 

@@ -203,7 +203,9 @@ struct ReminderSnoozeResult: Codable, Hashable {
 enum ReminderStatus: String, Codable, Hashable {
     case pending = "PENDING"
     case snoozed = "SNOOZED"
+    case processing = "PROCESSING"
     case sent = "SENT"
+    case escalating = "ESCALATING"
     case failed = "FAILED"
     case escalated = "ESCALATED"
     case cancelled = "CANCELLED"

@@ -11,6 +11,15 @@ import {
 const DIGEST_HOUR = parseInt(process.env.DAILY_DIGEST_HOUR || "18", 10);
 const ESCALATION_MINUTES = parseInt(process.env.REMINDER_ESCALATION_MINUTES || "15", 10);
 
+async function claimReminder(db, { id, fromStatus, toStatus }) {
+  const claimedAt = new Date();
+  const result = await db.reminder.updateMany({
+    where: { id, status: fromStatus },
+    data: { status: toStatus, processingStartedAt: claimedAt },
+  });
+  return result.count === 1 ? claimedAt : null;
+}
+
 function deliveryFailed(delivery) {
   if (delivery.delivered || delivery.simulated) return false;
   return delivery.reason !== "notifications_disabled_by_user";
@@ -76,6 +85,13 @@ export async function processPendingReminders(db) {
   });
 
   for (const reminder of reminders) {
+    const claimedAt = await claimReminder(db, {
+      id: reminder.id,
+      fromStatus: reminder.status,
+      toStatus: "PROCESSING",
+    });
+    if (!claimedAt) continue;
+
     const targetUserId = reminder.task.assigneeId || reminder.task.creatorId;
     let reminderType = "reminder";
     if (reminder.task.assigneeId) {
@@ -99,6 +115,7 @@ export async function processPendingReminders(db) {
       data: {
         status,
         sentAt,
+        processingStartedAt: null,
         snoozedUntil: null,
         escalationDueAt: failed ? null : new Date(sentAt.getTime() + ESCALATION_MINUTES * 60 * 1000),
       },
@@ -140,6 +157,13 @@ export async function processEscalations(db) {
   });
 
   for (const reminder of reminders) {
+    const claimedAt = await claimReminder(db, {
+      id: reminder.id,
+      fromStatus: "SENT",
+      toStatus: "ESCALATING",
+    });
+    if (!claimedAt) continue;
+
     const activeRecipientAccesses = reminder.task.recipientId
       ? await db.careRecipientAccess.findMany({
         where: {
@@ -167,6 +191,7 @@ export async function processEscalations(db) {
       data: {
         status,
         escalatedAt,
+        processingStartedAt: null,
       },
     });
     await logEvent(db, {

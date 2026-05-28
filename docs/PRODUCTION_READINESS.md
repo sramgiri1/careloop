@@ -23,8 +23,9 @@ This document tracks the concrete path from local app readiness to production la
    - Needs target GitHub repo or local destination from owner.
    - After export, run `npm install`, `npm test`, `npm run check:demo-showcase`, and iOS build/test from the extracted repo.
 3. **J2 scheduler/queue readiness.**
-   - Make reminder, snooze, escalation, digest, and archive jobs safe for multiple API instances.
-   - Add idempotent claim/retry tests.
+   - J2A reminder/escalation atomic claim is complete.
+   - Remaining: make digest, archive, and recurring occurrence jobs safe for duplicate workers.
+   - Add idempotent duplicate-worker tests for remaining scheduler jobs.
 4. **J3 load-shape validation.**
    - Add large seed profiles and query-plan checks for dashboard, task board, activity, invitations, reminders, and insights.
 5. **J4 privacy/data lifecycle.**

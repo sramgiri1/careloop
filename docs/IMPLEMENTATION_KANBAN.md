@@ -16,7 +16,7 @@ A card can move to `Done` only when all of these are true:
 
 ## In Progress
 
-No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A Railway/API deployment hardening, and K3B local release-config cleanup are complete. J2-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
+No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A Railway/API deployment hardening, K3B local release-config cleanup, and J2A reminder/escalation atomic claim are complete. J2B-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
 
 ## Ready
 
@@ -31,7 +31,7 @@ No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A
 | I4 | Care receiver profile and emergency information. | Receiver profile schema/UI; privacy/export/delete plumbing. | Authz, export/delete, and profile UI tests. | Adds real handoff context. | Planned |
 | I5 | Consent, privacy, and self-service controls. | Receiver settings, access grants, audit/export/delete routes. | Receiver revoke/export/delete tests and UI coverage. | Demonstrates trust controls. | Planned |
 | I6 | Calendar export and Apple ecosystem integrations. | Calendar/Reminders export, deep links, APNs/device validation. | Simulator deep-link tests plus physical-device validation. | Optional after care calendar stabilizes. | Planned |
-| J2 | Scheduler and queue readiness for multiple API instances. | Reminder, snooze, escalation, digest, and archive jobs. | Backend concurrent-claim and idempotent retry tests. | No demo change unless job state appears in seeded history. | Planned |
+| J2B | Scheduler review for digest, archive, and recurrence jobs. | Digest, archive, and recurring occurrence jobs. | Backend idempotent duplicate-worker tests and recurrence duplicate prevention tests. | No demo change unless job state appears in seeded history. | Planned |
 | J3 | Postgres load testing and query-plan baselines. | Large seed profiles, Prisma query paths, index coverage. | Load-shape scripts and query-plan assertions for high-cardinality reads. | No direct demo change. | Planned |
 | J4 | PII retention, export/delete, and encryption review. | Event/invite/comment/reminder retention, export/delete routes, security checks. | PII redaction, export/delete, and scoped-access regressions. | Adds trust/privacy talking points after implemented. | Planned |
 | J5 | Observability and performance budgets. | API timing/error/job-lag telemetry without private care details. | Telemetry contract tests and local performance smoke checks. | No direct demo change. | Planned |
@@ -85,6 +85,7 @@ No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A
 | H3 | Inspect Release archive for demo data, mock accounts, StoreKit config, and launch args. | `npm run check:ios-release-artifact` scans the built Release `.app` and passes only when no demo seed files, mock emails, local StoreKit fixture, demo env keys, or UI-test launch args are bundled. |
 | I0 | Scenario reliability and API-backed test harness. | Fixed scheduler escalation for legacy unscoped tasks without querying null receiver access, added a CareLoop-local API-aware iOS runner, repaired admin demo/persona UI test contracts, reseeded API-backed journeys before launch, and removed medication-module claims from demo/onboarding/test fixtures while leaving prescription pickup as a generic care task. |
 | J1 | Hot-path indexes and cursor pagination. | Added PostgreSQL indexes for auth reset lookup, invitations, receiver access/order, task lists, comments, reminders, and activity events; added opt-in cursor pagination for tasks, task comments, invitations, and events while preserving legacy array responses; focused backend scale/pagination regression and Prisma schema validation passed. |
+| J2A | Reminder and escalation atomic claim. | Added `PROCESSING` and `ESCALATING` reminder states with `processingStartedAt`, atomically claim due reminders/escalations before fanout, and added concurrent-worker backend tests proving overlapping scheduler runs only send/log once. |
 | K1 | CareLoop-local command boundary. | Added CareLoop-local room demo launcher, centralized iOS path resolution for local/sibling/extracted layouts, updated demo/readiness/recording/release/test scripts, and documented standalone build/test layout. |
 | K2A | Standalone export tooling. | Added guarded `npm run standalone:export` and `npm run check:standalone-export` commands that create/validate an app-only layout while excluding secrets, runtime artifacts, Nexus OS files, dashboard, reports, roadmap, `node_modules`, and simulator output. |
 | K2B | Physical standalone repository extraction. | Exported CareLoop to `/Users/sucheth/Downloads/careloop`, validated backend/demo/standalone checks, and pushed the standalone app repository to GitHub. |
