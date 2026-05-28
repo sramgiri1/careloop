@@ -30,6 +30,7 @@ import usersRoute    from "../src/routes/users.js";
 import circlesRoute  from "../src/routes/circles.js";
 import tasksRoute    from "../src/routes/tasks.js";
 import { createOAuthState, hashPassword, issueAccessToken, verifyOAuthState } from "../src/lib/auth.js";
+import { ACTIVE_TERMS_VERSION } from "../src/lib/legal.js";
 import { processEscalations, processPendingReminders } from "../src/scheduler/index.js";
 
 async function authHeaders(user = { id: "u1", email: "a@t.com", name: "Alice" }) {
@@ -1007,13 +1008,51 @@ describe("auth routes", () => {
     const res = await app.inject({
       method: "POST",
       url: "/auth/signup",
-      payload: { email: "New@Example.com", name: "New User", password: "password123" },
+      payload: {
+        email: "New@Example.com",
+        name: "New User",
+        password: "password123",
+        acceptedTerms: true,
+        termsVersion: ACTIVE_TERMS_VERSION,
+      },
     });
     assert.equal(res.statusCode, 201);
     const body = res.json();
     assert.equal(body.user.email, "new@example.com");
+    assert.equal(body.user.termsAcceptedVersion, ACTIVE_TERMS_VERSION);
+    assert.ok(body.user.termsAcceptedAt);
     assert.equal(body.method, "PASSWORD");
     assert.ok(body.accessToken, "access token is returned");
+    await app.close();
+  });
+
+  test("POST /auth/signup requires accepted terms", async () => {
+    const app = await buildApp(buildDb());
+    const res = await app.inject({
+      method: "POST",
+      url: "/auth/signup",
+      payload: { email: "no-terms@example.com", name: "No Terms", password: "password123" },
+    });
+    assert.equal(res.statusCode, 400);
+    assert.match(res.json().error, /Terms and conditions/);
+    await app.close();
+  });
+
+  test("POST /auth/signup rejects stale terms versions", async () => {
+    const app = await buildApp(buildDb());
+    const res = await app.inject({
+      method: "POST",
+      url: "/auth/signup",
+      payload: {
+        email: "old-terms@example.com",
+        name: "Old Terms",
+        password: "password123",
+        acceptedTerms: true,
+        termsVersion: "careloop-terms-2025-01-01",
+      },
+    });
+    assert.equal(res.statusCode, 400);
+    assert.match(res.json().error, /Terms and conditions/);
     await app.close();
   });
 
@@ -1057,13 +1096,33 @@ describe("auth routes", () => {
         providerUserId: "google-123",
         email: "social@test.com",
         name: "Social User",
+        acceptedTerms: true,
+        termsVersion: ACTIVE_TERMS_VERSION,
       },
     });
     assert.equal(res.statusCode, 200);
     const body = res.json();
     assert.equal(body.user.email, "social@test.com");
+    assert.equal(body.user.termsAcceptedVersion, ACTIVE_TERMS_VERSION);
     assert.equal(body.method, "GOOGLE");
     assert.ok(body.accessToken, "access token is returned");
+    await app.close();
+  });
+
+  test("POST /auth/social requires accepted terms for first-time account creation", async () => {
+    const app = await buildApp(buildDb());
+    const res = await app.inject({
+      method: "POST",
+      url: "/auth/social",
+      payload: {
+        provider: "GOOGLE",
+        providerUserId: "google-no-terms",
+        email: "social-no-terms@test.com",
+        name: "Social No Terms",
+      },
+    });
+    assert.equal(res.statusCode, 400);
+    assert.match(res.json().error, /Terms and conditions/);
     await app.close();
   });
 
@@ -1077,6 +1136,8 @@ describe("auth routes", () => {
         providerUserId: "google-lowercase",
         email: "lowercase-provider@test.com",
         name: "Lowercase Provider",
+        acceptedTerms: true,
+        termsVersion: ACTIVE_TERMS_VERSION,
       },
     });
 
@@ -2292,7 +2353,13 @@ describe("circle membership management", () => {
     const adminSignup = await app.inject({
       method: "POST",
       url: "/auth/signup",
-      payload: { email: "admin@careloop.test", name: "Admin User", password: "password123" },
+      payload: {
+        email: "admin@careloop.test",
+        name: "Admin User",
+        password: "password123",
+        acceptedTerms: true,
+        termsVersion: ACTIVE_TERMS_VERSION,
+      },
     });
     assert.equal(adminSignup.statusCode, 201);
     const adminAuth = adminSignup.json();
@@ -2300,7 +2367,13 @@ describe("circle membership management", () => {
     const invitedSignup = await app.inject({
       method: "POST",
       url: "/auth/signup",
-      payload: { email: "invitee@careloop.test", name: "Invitee User", password: "password123" },
+      payload: {
+        email: "invitee@careloop.test",
+        name: "Invitee User",
+        password: "password123",
+        acceptedTerms: true,
+        termsVersion: ACTIVE_TERMS_VERSION,
+      },
     });
     assert.equal(invitedSignup.statusCode, 201);
     const inviteeAuth = invitedSignup.json();
@@ -2308,7 +2381,13 @@ describe("circle membership management", () => {
     const joinerSignup = await app.inject({
       method: "POST",
       url: "/auth/signup",
-      payload: { email: "joiner@careloop.test", name: "Joiner User", password: "password123" },
+      payload: {
+        email: "joiner@careloop.test",
+        name: "Joiner User",
+        password: "password123",
+        acceptedTerms: true,
+        termsVersion: ACTIVE_TERMS_VERSION,
+      },
     });
     assert.equal(joinerSignup.statusCode, 201);
     const joinerAuth = joinerSignup.json();
@@ -2408,6 +2487,8 @@ describe("circle membership management", () => {
           email: `careloop-user-${String(index).padStart(2, "0")}@example.test`,
           name: `CareLoop User ${index}`,
           password,
+          acceptedTerms: true,
+          termsVersion: ACTIVE_TERMS_VERSION,
         },
       });
       assert.equal(signup.statusCode, 201);
@@ -2628,6 +2709,8 @@ describe("circle membership management", () => {
           email: `${key}@careloop.test`,
           name,
           password,
+          acceptedTerms: true,
+          termsVersion: ACTIVE_TERMS_VERSION,
         },
       });
       assert.equal(signup.statusCode, 201);

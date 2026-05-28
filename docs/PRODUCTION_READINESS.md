@@ -11,6 +11,7 @@ This document tracks the concrete path from local app readiness to production la
 - Railway config-as-code is present for Railpack, `npm start`, `/health`, restart policy, and the Railway-provided `PORT`.
 - Production env validation is available via `npm run check:production-env -- --env-file .env.prod` and fails without printing secret values.
 - iOS API configuration is build-setting driven: Debug uses the local API, Release no longer hardcodes localhost, and the shared `API_KEY` has been removed from the app plist.
+- New password and first-time social accounts require Terms & Conditions acceptance, and the backend stores accepted timestamp plus terms version.
 - Apple/App Store setup, APNs, OAuth credentials, live email sender validation, and physical-device validation are not complete.
 
 ## Internal Work We Can Do Now
@@ -40,6 +41,10 @@ This document tracks the concrete path from local app readiness to production la
    - `Info.plist` uses `CARELOOP_API_BASE_URL` instead of a hardcoded API origin.
    - The stale shared `API_KEY` was removed from iOS.
    - `npm run check:ios-release-hygiene` fails if localhost/shared-key config reappears in shipping iOS configuration.
+9. **H3C terms acceptance.** Complete.
+   - Signup opens the reusable in-app Terms & Conditions screen.
+   - Account creation is enabled only after `OK, I agree`.
+   - Backend auth stores `termsAcceptedAt` and `termsAcceptedVersion` for first-time password/social accounts.
 
 ## External Setup Needed From Owner
 

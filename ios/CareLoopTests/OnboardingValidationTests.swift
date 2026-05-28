@@ -45,6 +45,12 @@ final class OnboardingValidationTests: XCTestCase {
         )
     }
 
+    func test_termsDocument_hasActiveVersionAndRequiredSafetyCopy() {
+        XCTAssertEqual(CareLoopLegalDocument.termsVersion, "careloop-terms-2026-05-28")
+        XCTAssertTrue(CareLoopLegalDocument.termsSections.contains { $0.body.contains("not an emergency response service") })
+        XCTAssertTrue(CareLoopLegalDocument.termsSections.contains { $0.body.contains("Premium applies per care receiver") })
+    }
+
     func test_resetPassword_requiresMatchingStrongPasswords() {
         XCTAssertFalse(OnboardingValidation.resetPassword(password: "short", confirmPassword: "short"))
         XCTAssertFalse(OnboardingValidation.resetPassword(password: "password1", confirmPassword: "password2"))

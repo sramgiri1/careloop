@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import { ACTIVE_TERMS_VERSION } from "../src/lib/legal.js";
 
 const db = new PrismaClient();
 
@@ -13,6 +14,8 @@ async function main() {
       email: "alice.admin@test.careloop.local",
       name: "Alice Admin",
       timezone: "America/New_York",
+      termsAcceptedAt: now,
+      termsAcceptedVersion: ACTIVE_TERMS_VERSION,
     },
   });
 
@@ -21,6 +24,8 @@ async function main() {
       email: "carol.member@test.careloop.local",
       name: "Carol Member",
       timezone: "America/New_York",
+      termsAcceptedAt: now,
+      termsAcceptedVersion: ACTIVE_TERMS_VERSION,
     },
   });
 
@@ -29,6 +34,8 @@ async function main() {
       email: "dave.member@test.careloop.local",
       name: "Dave Member",
       timezone: "America/New_York",
+      termsAcceptedAt: now,
+      termsAcceptedVersion: ACTIVE_TERMS_VERSION,
     },
   });
 

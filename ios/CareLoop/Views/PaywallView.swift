@@ -13,6 +13,7 @@ struct PaywallView: View {
     @State private var isSyncingEntitlement = false
     @State private var syncError: String?
     @State private var completion: PremiumPurchaseCompletion?
+    @State private var showTermsAndConditions = false
 
     private var allowsSimulatedPremiumSync: Bool {
         #if DEBUG
@@ -70,6 +71,9 @@ struct PaywallView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .accessibilityIdentifier("receiver-paywall-screen")
+        .sheet(isPresented: $showTermsAndConditions) {
+            LegalTermsView()
+        }
     }
 
     private var background: some View {
@@ -319,6 +323,21 @@ struct PaywallView: View {
                     .underline()
             }
             .disabled(store.isLoading || isSyncingEntitlement)
+
+            HStack(spacing: 18) {
+                Button("Terms of Use") {
+                    showTermsAndConditions = true
+                }
+                .accessibilityIdentifier("paywall-terms-link-button")
+
+                Button("Privacy Policy") {
+                    showTermsAndConditions = true
+                }
+                .accessibilityIdentifier("paywall-privacy-link-button")
+            }
+            .font(.system(size: 12, weight: .bold, design: .rounded))
+            .foregroundStyle(.white.opacity(0.58))
+            .buttonStyle(.plain)
 
             Text("Premium is managed per care receiver. Unlocking \(recipient.name) does not automatically upgrade other care receivers in this Care Circle.")
                 .font(.system(size: 11, weight: .medium, design: .rounded))

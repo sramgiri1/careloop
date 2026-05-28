@@ -18,6 +18,7 @@ import {
   verifyOAuthState,
   verifyPassword,
 } from "../lib/auth.js";
+import { termsAcceptanceFromPayload } from "../lib/legal.js";
 
 async function fetchUserWithMemberships(db, id) {
   const user = await db.user.findUnique({
@@ -144,6 +145,10 @@ export default async function authRoutes(app) {
     if (!normalizedEmail || !name?.trim() || !password || password.trim().length < 8) {
       return reply.code(400).send({ error: "name, email, and password (min 8 chars) are required" });
     }
+    const termsAcceptance = termsAcceptanceFromPayload(req.body);
+    if (!termsAcceptance) {
+      return reply.code(400).send({ error: "Terms and conditions must be accepted before creating an account" });
+    }
 
     try {
       const user = await db.user.create({
@@ -152,6 +157,7 @@ export default async function authRoutes(app) {
           name: name.trim(),
           phone: phone?.trim() || null,
           passwordHash: hashPassword(password),
+          ...termsAcceptance,
         },
       });
       return reply.code(201).send(await authResponse(db, "PASSWORD", user.id));
@@ -229,10 +235,15 @@ export default async function authRoutes(app) {
       if (existingUser) {
         userId = existingUser.id;
       } else {
+        const termsAcceptance = termsAcceptanceFromPayload(req.body);
+        if (!termsAcceptance) {
+          return reply.code(400).send({ error: "Terms and conditions must be accepted before creating an account" });
+        }
         const created = await db.user.create({
           data: {
             email: resolved.email,
             name: resolved.name || resolved.email.split("@")[0],
+            ...termsAcceptance,
           },
         });
         userId = created.id;

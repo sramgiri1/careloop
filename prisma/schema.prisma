@@ -8,19 +8,21 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(cuid())
-  email            String   @unique
-  name             String
-  phone            String?
-  passwordHash     String?
-  authVersion      Int      @default(0)
-  pushToken        String?
-  timezone         String?
-  notifAssignments Boolean  @default(true)
-  notifEscalations Boolean  @default(true)
-  notifDigest      Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  name                 String
+  phone                String?
+  passwordHash         String?
+  authVersion          Int       @default(0)
+  pushToken            String?
+  timezone             String?
+  notifAssignments     Boolean   @default(true)
+  notifEscalations     Boolean   @default(true)
+  notifDigest          Boolean   @default(true)
+  termsAcceptedAt      DateTime?
+  termsAcceptedVersion String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   identities                    AuthIdentity[]
   memberships                   CircleMember[]
@@ -271,15 +273,15 @@ model TaskComment {
 }
 
 model Reminder {
-  id              String         @id @default(cuid())
-  scheduledAt     DateTime
-  sentAt          DateTime?
-  snoozedUntil    DateTime?
-  snoozeCount     Int            @default(0)
-  escalationDueAt DateTime?
-  channel         Channel        @default(PUSH)
-  status          ReminderStatus @default(PENDING)
-  escalatedAt     DateTime?
+  id                  String         @id @default(cuid())
+  scheduledAt         DateTime
+  sentAt              DateTime?
+  snoozedUntil        DateTime?
+  snoozeCount         Int            @default(0)
+  escalationDueAt     DateTime?
+  channel             Channel        @default(PUSH)
+  status              ReminderStatus @default(PENDING)
+  escalatedAt         DateTime?
   processingStartedAt DateTime?
 
   task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)

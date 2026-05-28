@@ -34,3 +34,4 @@ Current screen coverage:
 - Circle members
 - New task
 - Task detail
+- Terms & Conditions

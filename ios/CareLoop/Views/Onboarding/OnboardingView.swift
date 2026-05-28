@@ -16,6 +16,8 @@ struct OnboardingView: View {
     @State private var showCreatePassword = false
     @State private var showCreateConfirmPassword = false
     @State private var selectedProvider: AuthProvider = .email
+    @State private var showTermsAndConditions = false
+    @State private var pendingProviderAfterTerms: AuthProvider?
 
     @State private var forgotEmail = ""
     @State private var forgotCode = ""
@@ -214,6 +216,11 @@ struct OnboardingView: View {
             .padding(.bottom, 10)
         }
         .background(pageBackground.ignoresSafeArea())
+        .sheet(isPresented: $showTermsAndConditions) {
+            LegalTermsView(showsAcceptanceAction: true) {
+                acceptTermsAndContinue()
+            }
+        }
     }
 
     private var forgotPasswordFlow: some View {
@@ -410,7 +417,11 @@ struct OnboardingView: View {
     private var termsRow: some View {
         HStack(alignment: .center, spacing: 12) {
             Button {
-                createAcceptedTerms.toggle()
+                if createAcceptedTerms {
+                    createAcceptedTerms = false
+                } else {
+                    presentTermsAndConditions()
+                }
             } label: {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color.white)
@@ -428,22 +439,26 @@ struct OnboardingView: View {
                     }
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("signup-terms-checkbox")
+            .accessibilityLabel(createAcceptedTerms ? "Terms accepted" : "Review terms and conditions")
+            .accessibilityValue(createAcceptedTerms ? "Accepted" : "Not accepted")
 
-            (
-                Text("I agree to the ")
-                    .foregroundColor(Color(red: 0.26, green: 0.35, blue: 0.46))
-                + Text("Terms of Service")
-                    .foregroundColor(Color(red: 0.11, green: 0.76, blue: 0.72))
-                    .fontWeight(.bold)
-                + Text(" and ")
-                    .foregroundColor(Color(red: 0.26, green: 0.35, blue: 0.46))
-                + Text("Privacy Policy")
-                    .foregroundColor(Color(red: 0.11, green: 0.76, blue: 0.72))
-                    .fontWeight(.bold)
-            )
-            .font(.system(size: 12, weight: .semibold, design: .rounded))
-            .lineLimit(1)
-            .minimumScaleFactor(0.84)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(createAcceptedTerms ? "Terms accepted" : "Review required")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(createAcceptedTerms ? accent : Color(red: 0.26, green: 0.35, blue: 0.46))
+
+                Button {
+                    presentTermsAndConditions()
+                } label: {
+                    Text("Open Terms & Conditions")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .foregroundStyle(accent)
+                        .underline()
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("signup-terms-link-button")
+            }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -777,7 +792,23 @@ struct OnboardingView: View {
         showCreatePassword = false
         showCreateConfirmPassword = false
         selectedProvider = .email
+        pendingProviderAfterTerms = nil
         error = nil
+    }
+
+    private func presentTermsAndConditions() {
+        error = nil
+        showTermsAndConditions = true
+    }
+
+    private func acceptTermsAndContinue() {
+        createAcceptedTerms = true
+        guard let provider = pendingProviderAfterTerms else { return }
+        pendingProviderAfterTerms = nil
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 250_000_000)
+            handleProviderTap(provider)
+        }
     }
 
     private func handleProviderTap(_ provider: AuthProvider) {
@@ -792,6 +823,12 @@ struct OnboardingView: View {
             return
         }
 
+        if showSignUp && !createAcceptedTerms {
+            pendingProviderAfterTerms = provider
+            presentTermsAndConditions()
+            return
+        }
+
         loading = true
         Task {
             defer { loading = false }
@@ -803,7 +840,9 @@ struct OnboardingView: View {
                     accessToken: payload.accessToken,
                     providerUserId: payload.providerUserId,
                     email: payload.email,
-                    name: payload.name
+                    name: payload.name,
+                    acceptedTerms: showSignUp && createAcceptedTerms,
+                    termsVersion: showSignUp && createAcceptedTerms ? CareLoopLegalDocument.termsVersion : nil
                 )
                 try await finalizeAuthenticatedUser(result)
                 showSignUp = false
@@ -967,7 +1006,9 @@ struct OnboardingView: View {
             email: createEmail.trimmingCharacters(in: .whitespaces),
             name: createName.trimmingCharacters(in: .whitespaces),
             password: createPassword,
-            phone: nil
+            phone: nil,
+            acceptedTerms: true,
+            termsVersion: CareLoopLegalDocument.termsVersion
         )
         try await finalizeAuthenticatedUser(result)
     }

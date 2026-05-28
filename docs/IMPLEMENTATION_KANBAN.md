@@ -1,6 +1,6 @@
 # CareLoop Implementation Kanban
 
-**Last updated:** 2026-05-27
+**Last updated:** 2026-05-28
 
 This board tracks CareLoop app work only. It mirrors the PRD implementation phases and must be updated whenever a subphase moves state.
 
@@ -16,7 +16,7 @@ A card can move to `Done` only when all of these are true:
 
 ## In Progress
 
-No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A Railway/API deployment hardening, K3B local release-config cleanup, and J2A reminder/escalation atomic claim are complete. J2B-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
+No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A Railway/API deployment hardening, K3B local release-config cleanup, H3C terms acceptance, and J2A reminder/escalation atomic claim are complete. J2B-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
 
 ## Ready
 
@@ -83,6 +83,7 @@ No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A
 | H1 | Xcode target membership audit. | `npm run check:ios-release-hygiene` validates app target membership for demo/UI-test bridge files without changing Nexus OS files. |
 | H2 | Debug-gate UI-test and demo launch hooks. | `UITestScenario.current`, UI-test fixture data, demo launch session parsing, and app launch activation are compile-time gated behind `DEBUG`; the Xcode Release simulator build passes with production `AppState()` fallback outside Debug. |
 | H3 | Inspect Release archive for demo data, mock accounts, StoreKit config, and launch args. | `npm run check:ios-release-artifact` scans the built Release `.app` and passes only when no demo seed files, mock emails, local StoreKit fixture, demo env keys, or UI-test launch args are bundled. |
+| H3C | Terms & Conditions acceptance before account creation. | Added reusable in-app Terms & Conditions screen, signup link with `OK, I agree` acceptance, paywall legal links, persisted accepted terms metadata for first-time password/social accounts, backend acceptance tests, and Xcode unit/UI coverage. |
 | I0 | Scenario reliability and API-backed test harness. | Fixed scheduler escalation for legacy unscoped tasks without querying null receiver access, added a CareLoop-local API-aware iOS runner, repaired admin demo/persona UI test contracts, reseeded API-backed journeys before launch, and removed medication-module claims from demo/onboarding/test fixtures while leaving prescription pickup as a generic care task. |
 | J1 | Hot-path indexes and cursor pagination. | Added PostgreSQL indexes for auth reset lookup, invitations, receiver access/order, task lists, comments, reminders, and activity events; added opt-in cursor pagination for tasks, task comments, invitations, and events while preserving legacy array responses; focused backend scale/pagination regression and Prisma schema validation passed. |
 | J2A | Reminder and escalation atomic claim. | Added `PROCESSING` and `ESCALATING` reminder states with `processingStartedAt`, atomically claim due reminders/escalations before fanout, and added concurrent-worker backend tests proving overlapping scheduler runs only send/log once. |

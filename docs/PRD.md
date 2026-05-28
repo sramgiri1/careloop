@@ -409,8 +409,17 @@ Every API action, screen, and empty state must enforce these product rules.
 **POST /auth/signup — body:**
 
 ```json
-{ "email": "string", "name": "string", "password": "string (min 8)", "phone": "string?" }
+{
+  "email": "string",
+  "name": "string",
+  "password": "string (min 8)",
+  "phone": "string?",
+  "acceptedTerms": true,
+  "termsVersion": "careloop-terms-2026-05-28"
+}
 ```
+
+`acceptedTerms` is required for new password accounts. The iOS signup flow must open the in-app Terms & Conditions page and only enable account creation after the user taps `OK, I agree`. First-time social account creation must also send accepted terms metadata; existing social identities can sign in without reaccepting.
 
 **POST /auth/signup — response 201:**
 
@@ -423,6 +432,8 @@ Every API action, screen, and empty state must enforce these product rules.
     "email": "string",
     "name": "string",
     "phone": "string|null",
+    "termsAcceptedAt": "ISO timestamp",
+    "termsAcceptedVersion": "careloop-terms-2026-05-28",
     "identities": [],
     "memberships": []
   }
@@ -446,7 +457,9 @@ Every API action, screen, and empty state must enforce these product rules.
   "accessToken": "string?",
   "providerUserId": "string?",
   "email": "string?",
-  "name": "string?"
+  "name": "string?",
+  "acceptedTerms": "boolean required only for first-time account creation",
+  "termsVersion": "careloop-terms-2026-05-28?"
 }
 ```
 
@@ -455,7 +468,7 @@ Every API action, screen, and empty state must enforce these product rules.
 - Validates provider token when available
 - Normalizes provider names case-insensitively to `GOOGLE`, `FACEBOOK`, or `APPLE`; unsupported provider names fail with `400`
 - Links to an existing CareLoop user by provider identity first, then by email
-- Creates a new CareLoop user on first sign-in if no linked user exists
+- Creates a new CareLoop user on first sign-in if no linked user exists and accepted terms metadata is provided
 - Local/dev fallback profile payloads are rejected in production mode; production requires provider token validation or OAuth callback exchange
 
 **POST /auth/social — response 200:**
@@ -469,6 +482,8 @@ Every API action, screen, and empty state must enforce these product rules.
     "email": "string",
     "name": "string",
     "phone": "string|null",
+    "termsAcceptedAt": "ISO timestamp|null",
+    "termsAcceptedVersion": "string|null",
     "identities": [{
       "id": "string",
       "provider": "GOOGLE|FACEBOOK|APPLE",
@@ -1085,6 +1100,7 @@ This is a convergence roadmap for the **existing** codebase, not a greenfield bu
 - server-side entitlement sync
 - premium-aware insights and automation
 - privacy policy, incident response, TestFlight, and launch QA
+- in-app Terms & Conditions acceptance with persisted terms version for new accounts
 
 ### Premium implementation subphases
 

@@ -318,10 +318,12 @@ final class CareLoopUITests: XCTestCase {
         try await waitForAPIHealth()
 
         let emailToken = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        let payload: [String: String] = [
+        let payload: [String: Any] = [
             "email": "anita.ramgiri.\(emailToken.prefix(10))@example.com",
             "name": "Anita Ramgiri",
-            "password": "DemoCare123!"
+            "password": "DemoCare123!",
+            "acceptedTerms": true,
+            "termsVersion": "careloop-terms-2026-05-28"
         ]
         let body = try JSONSerialization.data(withJSONObject: payload)
         let url = try XCTUnwrap(URL(string: "http://127.0.0.1:3000/auth/signup"))
@@ -428,6 +430,28 @@ final class CareLoopUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Welcome back"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Log in"].exists)
         XCTAssertTrue(app.buttons["Sign up"].exists)
+    }
+
+    @MainActor
+    func test_signUpTermsLinkRequiresOkAcceptance() throws {
+        let app = launchApp(arguments: ["-careloop-ui-reset-session"])
+
+        XCTAssertTrue(app.buttons["Sign up"].waitForExistence(timeout: 5))
+        app.buttons["Sign up"].tap()
+
+        let termsCheckbox = app.buttons["signup-terms-checkbox"]
+        XCTAssertTrue(termsCheckbox.waitForExistence(timeout: 5))
+        XCTAssertEqual(termsCheckbox.value as? String, "Not accepted")
+
+        XCTAssertTrue(app.buttons["signup-terms-link-button"].waitForExistence(timeout: 3))
+        app.buttons["signup-terms-link-button"].tap()
+
+        XCTAssertTrue(app.otherElements["terms-conditions-screen"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["CareLoop Terms & Conditions"].exists)
+        XCTAssertTrue(app.buttons["terms-conditions-ok-button"].waitForExistence(timeout: 3))
+        app.buttons["terms-conditions-ok-button"].tap()
+
+        XCTAssertEqual(termsCheckbox.value as? String, "Accepted")
     }
 
     @MainActor

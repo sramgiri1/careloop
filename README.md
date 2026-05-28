@@ -4,7 +4,7 @@
 
 Stack: Node.js 20, Fastify 4, Prisma 5, PostgreSQL (Supabase), Resend, APNs, iOS 16+ SwiftUI
 
-Status: Scale/data hardening Phase J1 complete; shared care calendar, release setup, and remaining data-readiness work remain next
+Status: Scale/data hardening Phase J1/J2A complete; terms acceptance, release setup, and local demo/test boundaries are in place; remaining data-readiness work remains next
 Agents: ATLAS, PRISM, CORE, SWIFT, BEACON, CANVAS
 
 ⚠️  COMPLIANCE: FTC Health Breach Notification Rule applies.
@@ -20,6 +20,7 @@ Agents: ATLAS, PRISM, CORE, SWIFT, BEACON, CANVAS
 - Free care circles support one active care receiver and one caregiver for that receiver.
 - Premium care receivers unlock recurring routines, insights, unlimited caregivers, and advanced coordination for that receiver only.
 - Expired or revoked Premium keeps existing care data visible and blocks only new premium-only actions.
+- New account creation requires users to open the in-app Terms & Conditions page and tap `OK, I agree`; the backend stores the accepted terms version.
 - Dedicated medication-management features are on hold pending product, legal, and liability approval. Generic care tasks may cover real-world support such as prescription pickup, but the app must not claim dose scheduling, adherence, refill tracking, or medication advice.
 
 ## Focused Validation

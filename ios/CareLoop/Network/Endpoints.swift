@@ -296,13 +296,25 @@ extension APIClient {
 
 // MARK: — Users
 extension APIClient {
-    func signUp(email: String, name: String, password: String, phone: String?) async throws -> AuthResult {
-        try await post("/auth/signup", body: [
+    func signUp(
+        email: String,
+        name: String,
+        password: String,
+        phone: String?,
+        acceptedTerms: Bool,
+        termsVersion: String
+    ) async throws -> AuthResult {
+        var body: [String: Any] = [
             "email": email,
             "name": name,
             "password": password,
-            "phone": phone
-        ])
+            "acceptedTerms": acceptedTerms,
+            "termsVersion": termsVersion
+        ]
+        if let phone {
+            body["phone"] = phone
+        }
+        return try await postAny("/auth/signup", body: body)
     }
 
     func logIn(email: String, password: String) async throws -> AuthResult {
@@ -318,16 +330,21 @@ extension APIClient {
         accessToken: String?,
         providerUserId: String?,
         email: String?,
-        name: String?
+        name: String?,
+        acceptedTerms: Bool = false,
+        termsVersion: String? = nil
     ) async throws -> AuthResult {
-        try await post("/auth/social", body: [
+        var body: [String: Any] = [
             "provider": provider.apiValue,
-            "idToken": idToken,
-            "accessToken": accessToken,
-            "providerUserId": providerUserId,
-            "email": email,
-            "name": name
-        ])
+            "acceptedTerms": acceptedTerms,
+        ]
+        if let idToken { body["idToken"] = idToken }
+        if let accessToken { body["accessToken"] = accessToken }
+        if let providerUserId { body["providerUserId"] = providerUserId }
+        if let email { body["email"] = email }
+        if let name { body["name"] = name }
+        if let termsVersion { body["termsVersion"] = termsVersion }
+        return try await postAny("/auth/social", body: body)
     }
 
     func requestPasswordReset(email: String) async throws -> ForgotPasswordRequestResult {

@@ -10,6 +10,8 @@ struct CareUser: Identifiable, Codable {
     var notifAssignments: Bool?
     var notifEscalations: Bool?
     var notifDigest: Bool?
+    var termsAcceptedAt: Date?
+    var termsAcceptedVersion: String?
     var memberships: [CircleMembership]?
     var pendingInvites: [GroupInvitation]?
 }

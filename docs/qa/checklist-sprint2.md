@@ -176,6 +176,8 @@ SELECT COUNT(*) FROM "DigestLog" WHERE "userId"='<id>' AND date='2026-04-26';
 - [x] Sign Up surface exposes Apple option
 - [x] Provider buttons launch real auth entry sessions
 - [x] Email/password sign-up hits backend auth endpoint
+- [x] Terms & Conditions link opens in-app terms and requires `OK, I agree` before sign-up
+- [x] Backend stores accepted terms timestamp/version for first-time password and social account creation
 - [x] Email/password login hits backend auth endpoint
 - [x] Forgot-password request / verify / reset flow hits backend auth endpoints
 - [x] Social sign-in resolves into a real CareLoop account session

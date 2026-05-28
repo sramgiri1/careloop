@@ -2,6 +2,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword, issueAccessToken } from "../src/lib/auth.js";
+import { ACTIVE_TERMS_VERSION } from "../src/lib/legal.js";
 
 const db = new PrismaClient();
 
@@ -656,6 +657,8 @@ async function createUsers() {
         notifAssignments: true,
         notifEscalations: true,
         notifDigest: true,
+        termsAcceptedAt: new Date(),
+        termsAcceptedVersion: ACTIVE_TERMS_VERSION,
       },
     });
   }

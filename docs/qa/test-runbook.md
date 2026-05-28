@@ -51,7 +51,7 @@ CareLoop also exposes project-local iOS runners from the CareLoop API package fo
 
 | Journey | Automated suites |
 | --- | --- |
-| Sign in / create account contract | `backend:auth`, `ios:onboarding` |
+| Sign in / create account contract | `backend:auth`, `ios:onboarding`; backend requires accepted terms metadata for first-time password/social account creation and iOS verifies the Terms & Conditions link requires `OK, I agree` before acceptance |
 | Group list -> create/join -> group hub | `backend:circles`, `ios:onboarding`, `ios:personas` |
 | Invite member / invite care receiver | `backend:circles`, `ios:personas`; focused iOS UI coverage for pending caregiver invite resend/revoke, direct care receiver invite acceptance, caregiver no-access default join, organizer caregiver receiver-access grant/revoke, and disabled expired/declined/revoked invite states |
 | Create recurring task -> complete -> next occurrence | `backend:tasks`, focused iOS UI tests for premium recurring creation and next occurrence |
@@ -94,6 +94,7 @@ CareLoop also exposes project-local iOS runners from the CareLoop API package fo
 - Focused Premium billing-state validation can be run with backend test `treats billing retry and refunded receiver entitlements as locked but visible`, Xcode model test `test_careRecipient_exposesBillingRetryAndRefundedPremiumAsLockedButVisible`, and Xcode UI test `test_organizerSeesPremiumBillingAndRefundStates`.
 - Focused free/premium gate validation can be run with backend tests for add-receiver intent, recurring schedules, insights, and caregiver limits, plus Xcode UI tests `test_addSecondReceiverShowsPremiumGateBeforeForm`, `test_insightsLockFreeReceiverBehindPremiumUpgrade`, and `test_organizerCanOpenCareReceiverManagement`.
 - Focused App Store Server verification readiness can be run with `node --test test/app-store-server.test.js` and backend route test `fails closed when App Store verification is enabled without server credentials`.
+- Focused terms acceptance validation can be run with backend auth tests for `acceptedTerms`, Xcode unit `CareLoopTests/OnboardingValidationTests/test_termsDocument_hasActiveVersionAndRequiredSafetyCopy`, and Xcode UI `CareLoopUITests/test_signUpTermsLinkRequiresOkAcceptance`.
 - Focused demo showcase readiness can be run from the CareLoop repo root with `npm run check:demo-showcase` and `node scripts/seed-demo-showcase.js > /tmp/careloop-demo-manifest-check.json`.
 - Focused API-backed admin/persona validation can be run from the CareLoop repo root with `npm run test:ios:api`; use `npm run test:ios` for the full Xcode suite through the same API-aware runner.
 - Focused scale-read validation can be run from the CareLoop repo root with `node --test --test-name-pattern "cursor pagination|50 users|isolates one account" test/sprint2.test.js`; it covers 50-user/multi-role isolation plus opt-in cursor pagination for tasks, comments, invitations, and events.
