@@ -92,6 +92,12 @@ Local StoreKit products live at:
 ios/CareLoop/Configuration/CareLoop.storekit
 ```
 
+## iOS API Configuration
+
+`ios/CareLoop/Resources/Info.plist` reads `API_BASE_URL` from the `CARELOOP_API_BASE_URL` build setting. Debug builds point to `http://127.0.0.1:3000`; Release builds use `https://api.careloop.example` until the hosted API domain is chosen.
+
+The app no longer ships a shared API key. All protected API traffic uses `Authorization: Bearer <accessToken>`.
+
 ## Standalone Build/Test Layout
 
 CareLoop can now run without Nexus-root scripts. The supported standalone layouts are:

@@ -42,11 +42,14 @@ check(source.app.includes("#if DEBUG\n        if ProcessInfo.processInfo.argumen
 check(source.app.includes("if let launchSession = DemoLaunchSession.current"), "CareLoopApp must keep demo launch session path explicit");
 check(source.app.includes("#endif\n        _appState = StateObject(wrappedValue: AppState())"), "CareLoopApp must fall back to production AppState outside DEBUG");
 check(source.paywall.includes("#if DEBUG\n        ProcessInfo.processInfo.arguments.contains(\"-careloop-ui-simulate-premium-sync\")"), "Paywall simulated premium sync must be DEBUG-gated");
+check(!source.infoPlist.includes("<key>API_KEY</key>"), "Info.plist must not ship a shared API_KEY; app traffic must use per-user bearer tokens");
+check(source.infoPlist.includes("<string>$(CARELOOP_API_BASE_URL)</string>"), "Info.plist API_BASE_URL must come from CARELOOP_API_BASE_URL build settings");
+check(!source.infoPlist.includes("http://localhost:3000"), "Info.plist must not hardcode localhost API_BASE_URL");
+check(source.pbxproj.includes("CARELOOP_API_BASE_URL"), "Xcode project must define CARELOOP_API_BASE_URL build settings for the app target");
+check(!source.pbxproj.includes("http://localhost:3000"), "Xcode project must not use localhost API_BASE_URL; use 127.0.0.1 for Debug local networking and a hosted HTTPS origin for Release");
 check(!/organizer@careloop\.test|caregiver@careloop\.test|mom@careloop\.test/.test(source.app), "CareLoopApp must not contain fixture accounts");
 check(!/CARELOOP_DEMO_ACCESS_TOKEN/.test(source.app), "CareLoopApp must not directly read demo tokens");
 check(!/careloop-ui-scenario/.test(source.app), "CareLoopApp must not directly parse UI-test scenario arguments");
-
-warn(!source.infoPlist.includes("http://localhost:3000"), "Info.plist still uses localhost API_BASE_URL; H4 must replace this with production configuration before release");
 
 const releaseAppPath = process.env.CARELOOP_RELEASE_APP_PATH || findLatestReleaseAppPath();
 const requiresReleaseApp = process.env.CARELOOP_REQUIRE_RELEASE_APP === "1" || process.argv.includes("--require-release-app");
@@ -75,6 +78,9 @@ function findLatestReleaseAppPath() {
 function scanReleaseApp(appPath) {
   const forbiddenNames = [/\.storekit$/i, /seed-demo/i, /demo-showcase/i, /fixture/i];
   const forbiddenStrings = [
+    "API_KEY",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "@careloop.test",
     "@careloop.local",
     "CARELOOP_DEMO_ACCESS_TOKEN",

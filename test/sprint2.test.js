@@ -2,7 +2,6 @@
 // Run: node --test test/sprint2.test.js
 
 // Set env before any module-level reads (override shell env for isolation)
-process.env.API_KEY            = "test-key";
 process.env.AUTH_TOKEN_SECRET  = "test-auth-secret";
 process.env.DISABLE_SCHEDULER = "true";
 process.env.RESEND_API_KEY     = "";   // force simulated email mode

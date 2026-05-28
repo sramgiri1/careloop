@@ -27,9 +27,12 @@ final class APIClient {
     }()
 
     private init() {
-        guard let url = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String
+        guard let url = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String,
+              url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
         else { fatalError("API_BASE_URL must be set in Info.plist") }
         self.baseURL = url
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 
     var hasAccessToken: Bool {

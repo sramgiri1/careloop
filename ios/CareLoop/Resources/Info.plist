@@ -45,9 +45,7 @@
     <key>NSUserNotificationsUsageDescription</key>
     <string>CareLoop uses notifications to remind you about care tasks.</string>
     <key>API_BASE_URL</key>
-    <string>http://localhost:3000</string>
-    <key>API_KEY</key>
-    <string>5653fa10b5ce16faf133b9709a14b1dc24443f709fa50e83d28f04676b02ec05</string>
+    <string>$(CARELOOP_API_BASE_URL)</string>
     <key>AUTH_CALLBACK_SCHEME</key>
     <string>careloop</string>
     <key>NSAppTransportSecurity</key>

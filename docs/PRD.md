@@ -1088,7 +1088,7 @@ This is a convergence roadmap for the **existing** codebase, not a greenfield bu
 
 ### Premium implementation subphases
 
-The premium phase must be implemented in small, testable slices. `projects/careloop/docs/PREMIUM_PHASE_PLAN.md` is the operative Nexus plan for this phase.
+The premium phase must be implemented in small, testable slices. `docs/PREMIUM_PHASE_PLAN.md` is the operative CareLoop plan for this phase.
 
 - P1: premium decisions and contracts
 - P2: receiver plan visibility
@@ -1317,7 +1317,7 @@ After the receiver-scoped premium phase, implementation should continue in small
 
 **Goal:** separate CareLoop app build/test ownership from Nexus OS so the backend, iOS app, app tests, release checks, and demo tools can run from a standalone CareLoop repository.
 
-**Implementation status:** K1 and K2A are complete on the active CareLoop branch. CareLoop-local npm scripts no longer depend on a Nexus-root room-demo launcher, shared script path resolution supports `CARELOOP_IOS_ROOT`, `./ios`, `../careloop-ios`, and `../ios`, and standalone export tooling can create a clean app-only copy once the owner provides a target destination.
+**Implementation status:** K1, K2A, K2B, K3A, and K3B are complete on the standalone CareLoop repo. CareLoop-local npm scripts no longer depend on a Nexus-root room-demo launcher, shared script path resolution supports `CARELOOP_IOS_ROOT`, `./ios`, `../careloop-ios`, and `../ios`, standalone export tooling creates a clean app-only copy, Railway/API deployment checks are local and repeatable, and iOS API configuration no longer ships localhost or a shared API key.
 
 **Subphases**
 
@@ -1336,11 +1336,23 @@ After the receiver-scoped premium phase, implementation should continue in small
    - Copy CareLoop backend package and iOS project into the owner-selected standalone repository layout.
    - Exclude `node_modules`, `.tmp`, recordings, generated simulator artifacts, real `.env` values, Nexus OS roadmap, dashboard, and founder handoff files.
    - Tests: `npm install`, `npm test`, demo readiness, and iOS build/test from the extracted repo.
+   - Status: complete.
 4. **K3: Standalone CI and release gates.**
    - Add CI jobs for backend tests, Prisma validation, demo readiness, release hygiene, and Xcode build-for-testing.
    - Keep App Store Connect, APNs, OAuth, and hosted database secrets outside source control.
    - Tests: first CI run must pass without Nexus workspace files.
-5. **K4: Nexus archive/read-only integration.**
+   - Status: planned for hosted CI; local K3A/K3B release gates are complete.
+5. **K3A: API deployment hardening.**
+   - Add provider config, production env validation, and deploy-health checks without committing secrets.
+   - Tests: backend env validation, standalone export dry run, and production env checker.
+   - Status: complete.
+6. **K3B: Local release-config cleanup.**
+   - Move iOS API base URL into `CARELOOP_API_BASE_URL` build settings.
+   - Remove stale shared `API_KEY` from the app plist.
+   - Harden release hygiene so localhost/shared-key config cannot silently return.
+   - Tests: release hygiene, backend regression, demo readiness, and standalone export checks.
+   - Status: complete.
+7. **K4: Nexus archive/read-only integration.**
    - After the standalone repo is authoritative, keep only optional status links or read-only references in Nexus.
    - Do not let Nexus OS checks mutate CareLoop app source.
    - Tests: no CareLoop app source changes required by Nexus OS checks.

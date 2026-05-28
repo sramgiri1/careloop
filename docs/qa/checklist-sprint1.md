@@ -11,7 +11,7 @@ Command run:
 ```bash
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 xcodebuild test \
-  -project projects/careloop-ios/CareLoop.xcodeproj \
+  -project ios/CareLoop.xcodeproj \
   -scheme CareLoop \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```
@@ -41,7 +41,7 @@ Prerequisites:
 Commands:
 
 ```bash
-cd projects/careloop
+cd /path/to/careloop
 npm run qa:reset
 npm run qa:seed:sprint1
 ```
@@ -80,10 +80,10 @@ Expected output from `qa:seed:sprint1`:
 All requests must include:
 
 ```bash
--H "x-api-key: $API_KEY" -H "Content-Type: application/json"
+-H "Authorization: Bearer $ACCESS_TOKEN" -H "Content-Type: application/json"
 ```
 
-- [ ] Bad API key -> `401`
+- [ ] Missing/invalid bearer token -> `401`
 
 ```bash
 curl -i http://localhost:3000/users/any-user-id
@@ -93,78 +93,77 @@ curl -i http://localhost:3000/users/any-user-id
 
 ```bash
 curl -i -X POST http://localhost:3000/circles/CIRCLE_ID/tasks \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"title":"Blocked task","creatorId":"NON_MEMBER_USER_ID"}'
+  -H "Authorization: Bearer $NON_MEMBER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"title":"Blocked task","assigneeId":"ASSIGNEE_USER_ID"}'
 ```
 
 - [ ] Member cannot reassign task -> `403`
 
 ```bash
 curl -i -X PATCH http://localhost:3000/circles/CIRCLE_ID/tasks/TASK_ID \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"MEMBER_USER_ID","assigneeId":"OTHER_MEMBER_USER_ID"}'
+  -H "Authorization: Bearer $MEMBER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"assigneeId":"OTHER_MEMBER_USER_ID"}'
 ```
 
 - [ ] Member cannot edit another member's task fields -> `403`
 
 ```bash
 curl -i -X PATCH http://localhost:3000/circles/CIRCLE_ID/tasks/TASK_ID \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"MEMBER_USER_ID","title":"Unauthorized edit"}'
+  -H "Authorization: Bearer $MEMBER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"title":"Unauthorized edit"}'
 ```
 
 - [ ] Member cannot skip another member's task -> `403`
 
 ```bash
 curl -i -X PATCH http://localhost:3000/circles/CIRCLE_ID/tasks/TASK_ID \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"MEMBER_USER_ID","status":"SKIPPED"}'
+  -H "Authorization: Bearer $MEMBER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"status":"SKIPPED"}'
 ```
 
 - [ ] Member cannot delete another member's task -> `403`
 
 ```bash
 curl -i -X DELETE http://localhost:3000/circles/CIRCLE_ID/tasks/TASK_ID \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"MEMBER_USER_ID"}'
+  -H "Authorization: Bearer $MEMBER_TOKEN"
 ```
 
 - [ ] Member cannot update circle settings -> `403`
 
 ```bash
 curl -i -X PATCH http://localhost:3000/circles/CIRCLE_ID \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"MEMBER_USER_ID","name":"Unauthorized"}'
+  -H "Authorization: Bearer $MEMBER_TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"Unauthorized"}'
 ```
 
 - [ ] Member cannot remove another member -> `403`
 
 ```bash
 curl -i -X DELETE http://localhost:3000/circles/CIRCLE_ID/members/MEMBER_ROW_ID \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"MEMBER_USER_ID"}'
+  -H "Authorization: Bearer $MEMBER_TOKEN"
 ```
 
 - [ ] Duplicate membership -> `409`
 
 ```bash
 curl -i -X POST http://localhost:3000/circles/CIRCLE_ID/members \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"MEMBER_USER_ID"}'
+  -H "Authorization: Bearer $MEMBER_TOKEN" -H "Content-Type: application/json" \
+  -d '{}'
 ```
 
 - [ ] Nonexistent resource -> `404`
 
 ```bash
-curl -i http://localhost:3000/circles/not-a-real-circle-id
+curl -i http://localhost:3000/circles/not-a-real-circle-id \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
 - [ ] Last admin demotion blocked -> `400`
 
 ```bash
 curl -i -X PATCH http://localhost:3000/circles/CIRCLE_ID/members/ADMIN_MEMBER_ROW_ID/role \
-  -H "x-api-key: $API_KEY" -H "Content-Type: application/json" \
-  -d '{"userId":"ADMIN_USER_ID","role":"MEMBER"}'
+  -H "Authorization: Bearer $ADMIN_TOKEN" -H "Content-Type: application/json" \
+  -d '{"role":"MEMBER"}'
 ```
 
 ## Status

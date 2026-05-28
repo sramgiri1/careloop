@@ -2,7 +2,7 @@
 
 Updated: 2026-04-26
 
-Canonical iOS brand assets are stored in `projects/careloop-ios/CareLoop/Resources/Assets.xcassets/`.
+Canonical iOS brand assets are stored in `ios/CareLoop/Resources/Assets.xcassets/`.
 
 Assets:
 - `CareLoopIcon.imageset`

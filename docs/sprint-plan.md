@@ -103,8 +103,8 @@
 **Scope:**
 
 - Replace shared `x-api-key` with per-user auth:
-  - Supabase Auth with email magic link / OTP for iOS sign-in
-  - Backend validates bearer JWT tokens
+  - CareLoop-owned email/password auth for iOS sign-in
+  - Backend validates first-party bearer tokens signed with `AUTH_TOKEN_SECRET`
   - App traffic stops using shared API key
 - Replace self-join by plain circle ID with launch-safe invite flow:
   - Admin creates invite link/token
@@ -153,7 +153,7 @@
 **Sprint 2:** Add non-user-facing scheduler modules and delivery services. Add `DigestLog.messageId`. No new public mobile endpoint required if push token upload stays on the existing user route.
 
 **Sprint 3:**
-- Replace `x-api-key` mobile auth with `Authorization: Bearer <supabase_jwt>`
+- Replace `x-api-key` mobile auth with `Authorization: Bearer <accessToken>`
 - Add invite endpoints: `POST /circles/:id/invites` (admin-only), `POST /invites/redeem` (authenticated)
 - Deprecate production use of `POST /circles/:id/members` self-join
 - Change read routes from API-key-only to authenticated + membership-checked

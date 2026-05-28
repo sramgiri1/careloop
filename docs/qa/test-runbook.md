@@ -15,7 +15,7 @@ CareLoop also exposes project-local iOS runners from the CareLoop API package fo
 | iOS view/model-only change | iOS focused suite | `scripts/careloop-test-runner.sh ios:<area>` |
 | End of phase | Full regression | `scripts/careloop-test-runner.sh full` |
 | Release candidate | Full regression plus manual/device matrix | `scripts/careloop-test-runner.sh full` and `testability-matrix.md` |
-| API-backed iOS journey change | CareLoop-local API-backed Xcode suite | `npm run test:ios:api` from `projects/careloop` |
+| API-backed iOS journey change | CareLoop-local API-backed Xcode suite | `npm run test:ios:api` from the CareLoop repo root |
 
 ## Backend Suites
 
@@ -78,6 +78,7 @@ CareLoop also exposes project-local iOS runners from the CareLoop API package fo
 | Standalone build/test boundary | `npm run check:demo-showcase`, backend tests, and path resolver smoke validation verify CareLoop-local scripts can find the iOS app without Nexus-root launcher scripts |
 | Standalone export readiness | `npm run check:standalone-export`; guarded temporary export validation with `npm run standalone:export -- --to .tmp/standalone-export --clean` |
 | Release hygiene | `npm run check:ios-release-hygiene` validates iOS target membership and Debug-only demo/UI-test launch hooks; `npm run check:ios-release-artifact` scans the built Release `.app` for bundled demo data, mock accounts, local StoreKit fixtures, demo env keys, and UI-test launch args; Release simulator build verifies the app starts from production `AppState()` outside Debug |
+| iOS API configuration | `npm run check:ios-release-hygiene` validates that `Info.plist` uses `CARELOOP_API_BASE_URL`, does not hardcode localhost, and does not ship a shared `API_KEY`; Debug points to the local API and Release uses a production placeholder until a hosted API URL is chosen |
 
 ## Notes
 
@@ -93,13 +94,13 @@ CareLoop also exposes project-local iOS runners from the CareLoop API package fo
 - Focused Premium billing-state validation can be run with backend test `treats billing retry and refunded receiver entitlements as locked but visible`, Xcode model test `test_careRecipient_exposesBillingRetryAndRefundedPremiumAsLockedButVisible`, and Xcode UI test `test_organizerSeesPremiumBillingAndRefundStates`.
 - Focused free/premium gate validation can be run with backend tests for add-receiver intent, recurring schedules, insights, and caregiver limits, plus Xcode UI tests `test_addSecondReceiverShowsPremiumGateBeforeForm`, `test_insightsLockFreeReceiverBehindPremiumUpgrade`, and `test_organizerCanOpenCareReceiverManagement`.
 - Focused App Store Server verification readiness can be run with `node --test test/app-store-server.test.js` and backend route test `fails closed when App Store verification is enabled without server credentials`.
-- Focused demo showcase readiness can be run from `projects/careloop` with `npm run check:demo-showcase` and `node scripts/seed-demo-showcase.js > /tmp/careloop-demo-manifest-check.json`.
-- Focused API-backed admin/persona validation can be run from `projects/careloop` with `npm run test:ios:api`; use `npm run test:ios` for the full Xcode suite through the same API-aware runner.
-- Focused scale-read validation can be run from `projects/careloop` with `node --test --test-name-pattern "cursor pagination|50 users|isolates one account" test/sprint2.test.js`; it covers 50-user/multi-role isolation plus opt-in cursor pagination for tasks, comments, invitations, and events.
-- Focused standalone export validation can be run from `projects/careloop` with `npm run check:standalone-export`; use `npm run standalone:export -- --to .tmp/standalone-export --clean` for an ignored local copy test.
-- Focused one-command demo launcher validation can be run from `projects/careloop` with `npm run careloop:demo:check`; use `npm run careloop:demo` only when you intentionally want to seed data, start/reuse the API, and open simulator sessions.
-- Focused persona video recording can be run from `projects/careloop` with `npm run careloop:record-personas`. It seeds reserved-domain users, runs four Xcode UI journeys, and writes MP4 files under the printed `outputDir`.
-- Focused release-hygiene validation can be run from `projects/careloop-ios` with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build -project CareLoop.xcodeproj -scheme CareLoop -configuration Release -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO`, then from `projects/careloop` with `npm run check:ios-release-artifact`.
+- Focused demo showcase readiness can be run from the CareLoop repo root with `npm run check:demo-showcase` and `node scripts/seed-demo-showcase.js > /tmp/careloop-demo-manifest-check.json`.
+- Focused API-backed admin/persona validation can be run from the CareLoop repo root with `npm run test:ios:api`; use `npm run test:ios` for the full Xcode suite through the same API-aware runner.
+- Focused scale-read validation can be run from the CareLoop repo root with `node --test --test-name-pattern "cursor pagination|50 users|isolates one account" test/sprint2.test.js`; it covers 50-user/multi-role isolation plus opt-in cursor pagination for tasks, comments, invitations, and events.
+- Focused standalone export validation can be run from the CareLoop repo root with `npm run check:standalone-export`; use `npm run standalone:export -- --to .tmp/standalone-export --clean` for an ignored local copy test.
+- Focused one-command demo launcher validation can be run from the CareLoop repo root with `npm run careloop:demo:check`; use `npm run careloop:demo` only when you intentionally want to seed data, start/reuse the API, and open simulator sessions.
+- Focused persona video recording can be run from the CareLoop repo root with `npm run careloop:record-personas`. It seeds reserved-domain users, runs four Xcode UI journeys, and writes MP4 files under the printed `outputDir`.
+- Focused release-hygiene validation can be run from the CareLoop repo root with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild build -project ios/CareLoop.xcodeproj -scheme CareLoop -configuration Release -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO`, then `npm run check:ios-release-artifact`.
 - Focused task-escalation validation can be run with Xcode UI test `test_taskDetailShowsEscalationStateForOverdueTask`.
 - Focused escalation fanout/timeline validation can be run with backend test `escalation fanout logs a sanitized timeline summary without blocking on disabled alerts` and Xcode UI test `test_organizerActivityShowsEscalationTimelineEntry`.
 - Focused invite/access validation can be run with Xcode UI tests `test_organizerCanResendAndRevokePendingCaregiverInvite`, `test_careReceiverCanAcceptPendingInviteFromDirectory`, `test_caregiverAcceptsInviteWithNoReceiverAccessByDefault`, `test_organizerCanGrantAndRevokeCaregiverReceiverAccess`, and `test_inviteEdgeStatesDisableResponseActions`.

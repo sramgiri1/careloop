@@ -7,10 +7,10 @@ Status: Local QA sign-off complete; deploy verification moved to Sprint 2 FORGE 
 ## Evidence
 
 - Automated iOS XCTest completed locally with `22` tests passed and `0` failures.
-- Sprint 1 QA checklist exists at `projects/careloop/docs/qa/checklist-sprint1.md`.
+- Sprint 1 QA checklist exists at `docs/qa/checklist-sprint1.md`.
 - Repeatable QA database scripts exist:
-  - `projects/careloop/scripts/reset-db.js`
-  - `projects/careloop/scripts/seed-sprint1.js`
+  - `scripts/reset-db.js`
+  - `scripts/seed-sprint1.js`
 - Xcode project was regenerated from `project.yml`, and the `CareLoopTests` target is now wired into the checked-in `.xcodeproj`.
 
 ## Exit Criteria Review

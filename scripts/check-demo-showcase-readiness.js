@@ -42,7 +42,7 @@ const scenarios = [
   ["memory-care", "Memory care and home safety"],
 ];
 
-check(packageJson.scripts?.["careloop:demo"] === "node scripts/careloop-demo-room-setup.js", "package.json must expose npm run careloop:demo from projects/careloop");
+check(packageJson.scripts?.["careloop:demo"] === "node scripts/careloop-demo-room-setup.js", "package.json must expose npm run careloop:demo from the CareLoop repo root");
 check(packageJson.scripts?.["qa:seed:showcase"] === "node scripts/seed-demo-showcase.js", "package.json must expose qa:seed:showcase");
 check(packageJson.scripts?.["check:demo-showcase"] === "node scripts/check-demo-showcase-readiness.js", "package.json must expose check:demo-showcase");
 check(packageJson.scripts?.["check:careloop-demo-readiness"] === "node scripts/check-demo-showcase-readiness.js", "package.json must expose check:careloop-demo-readiness");

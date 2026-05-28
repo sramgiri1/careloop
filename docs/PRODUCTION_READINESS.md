@@ -10,6 +10,7 @@ This document tracks the concrete path from local app readiness to production la
 - Supabase production migrations have been applied successfully with `sslmode=require`.
 - Railway config-as-code is present for Railpack, `npm start`, `/health`, restart policy, and the Railway-provided `PORT`.
 - Production env validation is available via `npm run check:production-env -- --env-file .env.prod` and fails without printing secret values.
+- iOS API configuration is build-setting driven: Debug uses the local API, Release no longer hardcodes localhost, and the shared `API_KEY` has been removed from the app plist.
 - Apple/App Store setup, APNs, OAuth credentials, live email sender validation, and physical-device validation are not complete.
 
 ## Internal Work We Can Do Now
@@ -34,6 +35,10 @@ This document tracks the concrete path from local app readiness to production la
    - `railway.json` pins the deploy contract for the standalone repo.
    - `src/lib/env.js` validates production-only required values and partial provider configs.
    - `scripts/check-production-env.js` checks local or Railway-style env without exposing secret values.
+8. **K3B local release-config cleanup.** Complete.
+   - `Info.plist` uses `CARELOOP_API_BASE_URL` instead of a hardcoded API origin.
+   - The stale shared `API_KEY` was removed from iOS.
+   - `npm run check:ios-release-hygiene` fails if localhost/shared-key config reappears in shipping iOS configuration.
 
 ## External Setup Needed From Owner
 
@@ -57,6 +62,7 @@ This document tracks the concrete path from local app readiness to production la
 - Prisma migrations deploy safely to staging/prod.
 - `npm run check:production-env -- --env-file .env.prod` passes with no production-blocking errors.
 - Production API config replaces localhost in Release builds.
+- iOS Release config must replace `https://api.careloop.example` with the selected hosted API origin before TestFlight.
 - StoreKit purchase, restore, refund/revocation state, and App Store transaction verification pass with sandbox testers.
 - APNs delivery, notification tap deep links, and reminder escalation pass on physical devices.
 - OAuth provider callbacks pass on physical devices.

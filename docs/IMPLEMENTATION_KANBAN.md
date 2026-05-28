@@ -1,6 +1,6 @@
 # CareLoop Implementation Kanban
 
-**Last updated:** 2026-05-24
+**Last updated:** 2026-05-27
 
 This board tracks CareLoop app work only. It mirrors the PRD implementation phases and must be updated whenever a subphase moves state.
 
@@ -16,7 +16,7 @@ A card can move to `Done` only when all of these are true:
 
 ## In Progress
 
-No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, and K3A Railway/API deployment hardening are complete. J2-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
+No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, K3A Railway/API deployment hardening, and K3B local release-config cleanup are complete. J2-J5 can continue locally, while H4/H5 and F5 remain blocked on external Apple/App Store/physical-device setup.
 
 ## Ready
 
@@ -89,6 +89,7 @@ No CareLoop implementation card is actively in progress. Phase K1, K2A, K2B, and
 | K2A | Standalone export tooling. | Added guarded `npm run standalone:export` and `npm run check:standalone-export` commands that create/validate an app-only layout while excluding secrets, runtime artifacts, Nexus OS files, dashboard, reports, roadmap, `node_modules`, and simulator output. |
 | K2B | Physical standalone repository extraction. | Exported CareLoop to `/Users/sucheth/Downloads/careloop`, validated backend/demo/standalone checks, and pushed the standalone app repository to GitHub. |
 | K3A | Railway/API deployment hardening. | Added `railway.json`, Node engine pinning, production env validation, safe env checker tests, `.env.example` production placeholders, and docs for Railway/Supabase readiness without committing secrets. |
+| K3B | Local release-config cleanup. | Moved iOS API base URL into `CARELOOP_API_BASE_URL` build settings, removed the stale shared `API_KEY` from the app plist, hardened `npm run check:ios-release-hygiene`, refreshed bearer-token docs, and kept Debug local networking separate from Release hosted-API configuration. |
 
 ## Blocked / External Setup
 

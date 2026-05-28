@@ -25,6 +25,11 @@ targets:
         INFOPLIST_FILE: CareLoop/Resources/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.careloop.ios
         SUPPORTS_MACCATALYST: NO
+      configs:
+        Debug:
+          CARELOOP_API_BASE_URL: http://127.0.0.1:3000
+        Release:
+          CARELOOP_API_BASE_URL: https://api.careloop.example
 
   CareLoopTests:
     type: bundle.unit-test
